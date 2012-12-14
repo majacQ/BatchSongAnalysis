@@ -325,7 +325,6 @@ Analysis_Results.SkewnessIPI = SkewnessIPI;
 Analysis_Results.ModeLLRfh = ModeLLRfh;
 Analysis_Results.ModePulseAmplitudes = ModePulseAmplitudes;
 Analysis_Results.ModeSineAmplitudes = ModeSineAmplitudes;
-Analysis_Results.PulseModels = PulseModels;
 Analysis_Results.CorrSineFreqDynamics=CorrSineFreqDynamics;
 Analysis_Results.CorrBoutDuration=CorrBoutDuration;
 Analysis_Results.CorrPulseTrainDuration=CorrPulseTrainDuration;
@@ -333,5 +332,7 @@ Analysis_Results.CorrSineTrainDuration=CorrSineTrainDuration;
 Analysis_Results.CorrSineFreq=CorrSineFreq;
 Analysis_Results.CorrPulseFreq=CorrPulseFreq;
 Analysis_Results.CorrIpi=CorrIpi;
+
+Analysis_Results.PulseModels = PulseModels;
 
 Analysis_Results.timestamp = timestamp;
