@@ -59,7 +59,7 @@ for i = 1:num_genotypes
 end
 
 
-for y = 1:file_num
+parfor y = 1:file_num
     
     file = dir_list(y).name; %pull out the file name
     [~,root,ext] = fileparts(file);
@@ -81,7 +81,8 @@ for y = 1:file_num
         else
             result_path = [path2daq '/' results_folder '/' root '_' genotype '_control_' timestamp '.mat'];            
         end
-            save(result_path,'Analysis_Results','-mat');%save all variables in original file
+%            save(result_path,'Analysis_Results','-mat');%save all variables in original file
+        my_save(result_path,Analysis_Results);
     end
 end
 
@@ -94,3 +95,7 @@ end
 %filename = daqroot_chN_genotypeName_timestampofanalysis.m
 
 
+
+function my_save(result_path,Analysis_Results)
+
+save(result_path,'Analysis_Results','-mat');
