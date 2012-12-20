@@ -26,7 +26,7 @@ for i  = 1:numControls
         dir_list = dir(control_folders{ii});
         for iii = 1:numel(dir_list)
             file = dir_list(iii).name;
-            if strfind(file,control_genotypes{i}) ~= 0
+            if ~isempty(strfind(file,control_genotypes{i}))
                 count = count + 1;
                 AR = matfile([control_folders{ii} file]);
                 if count == 1
@@ -37,12 +37,14 @@ for i  = 1:numControls
             end
         end
     end
-    controls.(control_genotypes{i}) = Results;
+    varname = genvarname(control_genotypes{i});
+    controls.(varname) = Results;
 end
 
 SampleSize = zeros(1,numControls+1);
 for x = 1:numControls
-    SampleSize(x) = numel(controls.(control_genotypes{x}));
+    varname = genvarname(control_genotypes{x});
+    SampleSize(x) = numel(controls.(varname));
 end
     
 
@@ -58,7 +60,7 @@ for i  = 1:numel(genotypes)
         dir_list = dir(folders{ii});
         for iii = 1:numel(dir_list)
             file = dir_list(iii).name;
-            if strfind(file,genotypes{i}) ~= 0
+            if ~isempty(strfind(file,genotypes{i}))
                 count = count + 1;
                 AR = matfile([folders{ii} file]);
                 if count == 1
@@ -69,16 +71,18 @@ for i  = 1:numel(genotypes)
             end
         end
     end
-    results.(genotypes{i}) = Results;
+    varname = genvarname(genotypes{i});
+    results.(varname) = Results;
 end
 
 
 %make arrays for plotting
-for i = numel(genotypes) %for each genotype
-    numSamples = numel(results.(genotypes{i}));
+for i = 1:numel(genotypes) %for each genotype
+    geno_varname = genvarname(genotypes{i});
+    numSamples = numel(results.(geno_varname));
     SampleSize(end) = numSamples;
     maxSampleSize = max(SampleSize);
-    names = fieldnames(results.(char(genotypes{i})));
+    names = fieldnames(results.(geno_varname));
     clf;
     ha = tight_subplot(6,4,[.03 .04],[.05 .05],[.05 .03]);
     for j = 1:22
@@ -86,13 +90,14 @@ for i = numel(genotypes) %for each genotype
         Trait = names{j};
         %collect control data
         for k = 1:numControls
-            for m = 1:numel(controls.(control_genotypes{k}))
-                Results2Plot(m,k) = controls.(control_genotypes{k})(m).(Trait)(1);
+            control_varname = genvarname(control_genotypes{k});
+            for m = 1:numel(controls.(control_varname))
+                Results2Plot(m,k) = controls.(control_varname)(m).(Trait)(1);
             end
         end
         %collect results
         for n = 1:numSamples
-            Results2Plot(n,end) = results.(genotypes{i})(n).(Trait)(1);
+            Results2Plot(n,end) = results.(geno_varname)(n).(Trait)(1);
         end
         
         %determine whether results are sign diff from controls
@@ -119,7 +124,7 @@ for i = numel(genotypes) %for each genotype
     %collect and align models
     t = cell(numSamples,1);
     for y = 1:numSamples
-        t{y} = results.(genotypes{i})(y).PulseModels.NewMean;
+        t{y} = results.(geno_varname)(y).PulseModels.NewMean;
     end
     
     max_length = max(cellfun(@length,t));
