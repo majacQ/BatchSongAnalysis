@@ -26,7 +26,8 @@ for i  = 1:numControls
         dir_list = dir(control_folders{ii});
         for iii = 1:numel(dir_list)
             file = dir_list(iii).name;
-            if ~isempty(strfind(file,control_genotypes{i}))
+            [~,~,ext] = fileparts(file);
+            if ~isempty(strfind(file,control_genotypes{i})) && strcmp(ext,'.mat')
                 count = count + 1;
                 AR = matfile([control_folders{ii} file]);
                 if count == 1
@@ -60,7 +61,8 @@ for i  = 1:numel(genotypes)
         dir_list = dir(folders{ii});
         for iii = 1:numel(dir_list)
             file = dir_list(iii).name;
-            if ~isempty(strfind(file,genotypes{i}))
+            [~,~,ext] = fileparts(file);
+            if ~isempty(strfind(file,genotypes{i})) && strcmp(ext,'.mat')
                 count = count + 1;
                 AR = matfile([folders{ii} file]);
                 if count == 1
@@ -157,21 +159,21 @@ for i = 1:numel(genotypes) %for each genotype
     
     %print useful information in final panel
     axes(ha(j+2))
-    text(0,1,['Genotype = ' char(genotypes{1})])
+    text(0,1,['Genotype = ' char(genotypes{1})], 'interpreter', 'none')
     %collect data folders
     resFolders = [];
     for a= 1:numel(folders)
         folder = regexp(folders{a},'/','split');
         resFolders= [resFolders '  ' folder(end-1)];
     end
-    text(0,.8,['Analysis Folders = ' resFolders])
+    text(0,.8,['Analysis Folders = ' resFolders], 'interpreter', 'none')
     
     %collect controls
     conGenos = [];
     for a= 1:numControls
         conGenos = [conGenos '  ' char(control_genotypes{a})];
     end
-    text(0,.5,['Controls = ' conGenos])
+    text(0,.5,['Controls = ' conGenos], 'interpreter', 'none')
     
     %collect control folders
     conFolders = [];
@@ -179,11 +181,11 @@ for i = 1:numel(genotypes) %for each genotype
         folder = regexp(control_folders{a},'/','split');
         conFolders= [conFolders '  ' folder(end-1)];
     end
-    text(0,.3,['Control Folders = ' conFolders])
+    text(0,.3,['Control Folders = ' conFolders], 'interpreter', 'none')
 
     
     %save figure
-    set(gcf,'OuterPosition',[2000 1000 900 1100])
+    set(gcf,'OuterPosition',[500 1000 900 1150])
     set(gcf,'PaperPositionMode','auto')
     print(gcf,'-depsc',[folders{1} genotypes{i} '.eps'])
     saveas(gcf,[folders{1} genotypes{i} '.fig'])
