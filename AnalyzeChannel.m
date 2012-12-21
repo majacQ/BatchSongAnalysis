@@ -84,7 +84,7 @@ end
 
 %calculate sine Max FFT
 
-if numel(sines) > 0
+if numel(sines.start) > 0
     sineMFFT = findSineMaxFFT(sines,Data.fs);
 else
     sineMFFT = NaN;
@@ -92,7 +92,7 @@ end
 
 %Total recording, sine, pulse, bouts
 recording_duration = length(Data.d);
-if numel(sines) > 0
+if numel(sines.start) > 0
     SineTrainNum = numel(sines.start);
     SineTrainLengths = (sines.stop - sines.start);
     SineTotal = sum(SineTrainLengths);
