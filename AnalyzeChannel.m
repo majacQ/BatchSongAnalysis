@@ -13,14 +13,24 @@ load(filename,'-mat');
 
 load('./pulse_model_melanogaster.mat');
 OldPulseModel = cpm;
-pulses = Pulses.ModelCull2;
-pulses.x = GetClips(pulses.w0,pulses.w1,Data.d);
-sines = Sines.LengthCull;
-sines.clips = GetClips(sines.start,sines.stop,Data.d);
 pauseThreshold = 0.5e4; %minimum pause between bouts
 minIPI = 290;
 maxIPI = 510;
+try
+    pulses = Pulses.ModelCull2;
+    pulses.x = GetClips(pulses.w0,pulses.w1,Data.d);
+catch
+    pulses.x = {};
+end
 
+try
+    sines = Sines.LengthCull;
+    sines.clips = GetClips(sines.start,sines.stop,Data.d);
+catch
+    sines.start = [];
+    sines.stop = [];
+    sines.clips = {};
+end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Preliminary manipulations
@@ -28,6 +38,7 @@ maxIPI = 510;
 
 %calc IPIS
 try
+
 ipi = fit_ipi_model(pulses);
 %cull IPIs
 culled_ipi.d = ipi.d(ipi.d > minIPI & ipi.d < maxIPI);
@@ -83,6 +94,8 @@ end
 %%%%%%%%%%%%%
 
 %calculate sine Max FFT
+
+
 
 if numel(sines.start) > 0
     sineMFFT = findSineMaxFFT(sines,Data.fs);
