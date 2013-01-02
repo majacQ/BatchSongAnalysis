@@ -76,7 +76,7 @@ parfor y = 1:file_num
         %send each analysis job to separate cluster node
         Analysis_Results = AnalyzeChannel(path_file);
         
-        if sum(ismember(control_genotypes,genotypes)) == 0
+        if sum(ismember(control_genotypes,genotype)) == 0
             result_path = [path2daq '/' results_folder '/' root '_' genotype '_' timestamp '.mat'];
         else
             result_path = [path2daq '/' results_folder '/' root '_' genotype '_control_' timestamp '.mat'];            
