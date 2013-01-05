@@ -150,7 +150,7 @@ BoutsPerMin = numel(Bouts.Start) * 60 / (recording_duration / Data.fs);
 % Sine/Pulse within bout Transition Probabilities - DONE
 
 if NumTransitions > 0
-    Sine2PulseTransProb =  NumSine2PulseTransitions - NumPulse2SineTransitions / NumTransitions;
+    Sine2PulseTransProb =  (NumSine2PulseTransitions - NumPulse2SineTransitions) / NumTransitions;
 else
     Sine2PulseTransProb = NaN;
 end
