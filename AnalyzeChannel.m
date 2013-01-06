@@ -14,10 +14,13 @@ load(filename,'-mat');
 load('./pulse_model_melanogaster.mat');
 OldPulseModel = cpm;
 pauseThreshold = 0.5e4; %minimum pause between bouts
-minIPI = 290;
-maxIPI = 510;
+LLR_threshold = 50;
+minIPI = 100;
+maxIPI = 3000;
 try
-    pulses = Pulses.ModelCull2;
+    pulses.w0 = Pulses.IPICull.w0(Pulses.Lik_pulse2.LLR_fh > LLR_threshold );
+    pulses.w1 = Pulses.IPICull.w1(Pulses.Lik_pulse2.LLR_fh > LLR_threshold );
+    pulses.wc = pulses.w1 - ((pulses.w1 - pulses.w0)./2);
     pulses.x = GetClips(pulses.w0,pulses.w1,Data.d);
 catch
     pulses.x = {};
@@ -25,7 +28,7 @@ end
 
 try
     sines = Sines.LengthCull;
-    sines.clips = GetClips(sines.start,sines.stop,Data.d);
+    sines.clips = GetClips(sines.start,sines.stop,Data.d)';
 catch
     sines.start = [];
     sines.stop = [];
@@ -38,11 +41,14 @@ end
 
 %calc IPIS
 try
-
-ipi = fit_ipi_model(pulses);
-%cull IPIs
-culled_ipi.d = ipi.d(ipi.d > minIPI & ipi.d < maxIPI);
-culled_ipi.t = ipi.t(ipi.d > minIPI & ipi.d < maxIPI);
+    p = pulses.wc;
+    p_shift_one = circshift(p,[0 -1]);
+    ipi.d=p_shift_one(1:end-1)-p(1:end-1);
+    ipi.t = p(1:end-1);
+    %ipi = fit_ipi_model(pulses);
+    %cull IPIs
+    culled_ipi.d = ipi.d(ipi.d > minIPI & ipi.d < maxIPI);
+    culled_ipi.t = ipi.t(ipi.d > minIPI & ipi.d < maxIPI);
 catch
     ipi.ipi_mean = [];
     ipi.ipi_SD = [];
@@ -56,7 +62,10 @@ end
 if numel(culled_ipi.d) > 1
     %find IPI trains
     IpiTrains = findIpiTrains(culled_ipi);
-    
+    %discard IPI trains shorter than max allowed IPI
+    IpiTrains.d = IpiTrains.d(cellfun(@(x) ((x(end)-x(1))>maxIPI),IpiTrains.t));
+    IpiTrains.t = IpiTrains.t(cellfun(@(x) ((x(end)-x(1))>maxIPI),IpiTrains.t));
+
     %find All Pauses
     Pauses = findPauses(Data,sines,IpiTrains);
     
@@ -94,8 +103,6 @@ end
 %%%%%%%%%%%%%
 
 %calculate sine Max FFT
-
-
 
 if numel(sines.start) > 0
     sineMFFT = findSineMaxFFT(sines,Data.fs);
@@ -150,24 +157,34 @@ BoutsPerMin = numel(Bouts.Start) * 60 / (recording_duration / Data.fs);
 % Sine/Pulse within bout Transition Probabilities - DONE
 
 if NumTransitions > 0
-    Sine2PulseTransProb =  (NumSine2PulseTransitions - NumPulse2SineTransitions) / NumTransitions;
+    Sine2PulseTransProb = NumSine2PulseTransitions / NumTransitions;
+
 else
     Sine2PulseTransProb = NaN;
 end
 
+% Pulse/Sine within bout Transition Probabilities - DONE
 
-%mode pulse train length - DONE
+% if NumTransitions > 0
+%     Pulse2SineTransProb = NumPulse2SineTransitions / NumTransitions;
+% 
+% else
+%     Pulse2SineTransProb = NaN;
+% end
+% 
+
+%mode pulse train length (sec) - DONE
 
 try
-    ModePulseTrainLength = kernel_mode(PulseTrainLengths,min(PulseTrainLengths):1:max(PulseTrainLengths));
+    ModePulseTrainLength = kernel_mode(PulseTrainLengths,min(PulseTrainLengths):1:max(PulseTrainLengths))./Data.fs;
 catch
     ModePulseTrainLength = NaN;
 end
 
-%mode sine train length - DONE
+%mode sine train length (sec) - DONE
 
 try
-    ModeSineTrainLength = kernel_mode(SineTrainLengths,min(SineTrainLengths):1:max(SineTrainLengths));
+    ModeSineTrainLength = kernel_mode(SineTrainLengths,min(SineTrainLengths):1:max(SineTrainLengths))./Data.fs;
 catch
     ModeSineTrainLength = NaN;
 end
@@ -176,10 +193,10 @@ end
 
 if PulseTotal > 0
     Sine2Pulse = SineTotal ./ PulseTotal;
-    Sine2PulseNorm = sqrt(SineTotal .* PulseTotal) ./ recording_duration';
+    Sine2PulseNorm = [log10(Sine2Pulse) log10(sqrt(SineTotal.* PulseTotal)./(recording_duration-SineTotal-PulseTotal))];
 else
     Sine2Pulse = NaN;
-    Sine2PulseNorm = NaN;
+    Sine2PulseNorm = [NaN NaN];
 end
 
 %mode pulse carrier freq - DONE
@@ -199,7 +216,7 @@ end
 
 %mode IPI - DONE
 try
-    ModeIPI = kernel_mode(culled_ipi.d,min(culled_ipi.d):1:max(culled_ipi.d));
+    ModeIPI = kernel_mode(culled_ipi.d,min(culled_ipi.d):1:max(culled_ipi.d))./10;
 catch
     ModeIPI = NaN;
 end
@@ -280,8 +297,8 @@ try
     pulseTrains.start = zeros(numel(IpiTrains.t),1);
     pulseTrains.stop = pulseTrains.start;
     for i = 1:numel(IpiTrains.t)
-        pulseTrains.start(i) = IpiTrains.d{i}(1);
-        pulseTrains.stop(i) = IpiTrains.d{i}(end);
+        pulseTrains.start(i) = IpiTrains.t{i}(1);
+        pulseTrains.stop(i) = IpiTrains.t{i}(end);
     end
     CorrPulseTrainDuration = corr(pulseTrains.start,pulseTrains.stop - pulseTrains.start);
 catch
@@ -327,6 +344,7 @@ Analysis_Results.PulseTrainsPerMin = PulseTrainsPerMin;
 Analysis_Results.SineTrainsPerMin = SineTrainsPerMin;
 Analysis_Results.BoutsPerMin = BoutsPerMin;
 Analysis_Results.Sine2PulseTransProb = Sine2PulseTransProb;
+%Analysis_Results.Pulse2SineTransProb = Pulse2SineTransProb;
 Analysis_Results.ModePulseTrainLength = ModePulseTrainLength;
 Analysis_Results.ModeSineTrainLength = ModeSineTrainLength;
 Analysis_Results.Sine2Pulse = Sine2Pulse;
