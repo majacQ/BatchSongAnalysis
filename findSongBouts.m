@@ -60,17 +60,18 @@ end
 
 
 %pad bouts by IPI on either side
-max_IPI = max(ipiDur);
-Start = Start - max_IPI;
-Stop = Stop + max_IPI;
-
+if numel(ipiStart) > 0
+    max_IPI = max(ipiDur);
+    Start = Start - max_IPI;
+    Stop = Stop + max_IPI;
+end
 
 %if indixes run off beginning or end, then trim back
 Start(Start < 1) = 1;
 Stop(Stop > numel(song)) = numel(song);
 
 %make cell array of bouts
-bout_events	 = cell(numel(Start),1);
+bout_events     = cell(numel(Start),1);
 for i = 1:numel(bout_events)
    bout_events{i} = data.d(Start(i):Stop(i));
 end
