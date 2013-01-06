@@ -20,6 +20,8 @@ function BatchFlySongAnalysis(daq_file,genotypes,recording_channels,control_geno
 % *e.g. {'wild_type' 'other_wild_type'}
 %
 
+[poolavail,isOpen] = check_open_pool;
+
 num_genotypes = numel(genotypes);
 
 %check to confirm # genotypes == number recording_channels
@@ -60,12 +62,13 @@ end
 
 
 parfor y = 1:file_num
+%for y = 1:file_num
     
     file = dir_list(y).name; %pull out the file name
     [~,root,ext] = fileparts(file);
     path_file = [folder file];
     if strcmp(ext,'.mat');
-
+        fprintf(['Analyzing file ' root '\n'])
         %find channel number
         %e.g. root = PS_20110315090424_ch12
         channel_pos = strfind(root, '_ch');
@@ -86,6 +89,7 @@ parfor y = 1:file_num
     end
 end
 
+check_close_pool(poolavail,isOpen);
 
 %send each file in control folder for analysis on separate cluster node
 
