@@ -200,7 +200,7 @@ end
 
 %mode sine carrier freq - DONE
 try
-    ModeSineMFFT = kernel_mode(sMFFT.freqAll,min(sMFFT.freqAll):.1:max(sMFFT.freqAll));
+    ModeSineMFFT = kernel_mode(sineMFFT.freqAll,min(sineMFFT.freqAll):.1:max(sineMFFT.freqAll));
 catch
     ModeSineMFFT = NaN;
 end
