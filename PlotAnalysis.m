@@ -99,7 +99,7 @@ for i = 1:numel(genotypes) %for each genotype
     maxSampleSize = max(SampleSize);
     names = fieldnames(results.(geno_varname));
     clf;
-    ha = tight_subplot(6,4,[.04 .04],[.05 .05],[.05 .03]);
+    ha = tight_subplot(6,4,.05,.06,[.05 .03]);
     for j = 1:22
         Results2Plot = NaN(maxSampleSize,numControls+1);
         Trait = names{j};
@@ -157,10 +157,10 @@ for i = 1:numel(genotypes) %for each genotype
             errorbarjitter(OutliersRemovedResults2Plot,ha(j),'Ave_Marker','+','Colors',colors,'color_opts',[1 1 1])
             set(gca,'XTick',[],'YTickLabelMode','auto','XColor',get(gca,'Color'))
             if numel(controlidx) > 0
-                text(0.15,-.1,['# Outliers=' num2str(numel(controlidx))],'Units','normalized', 'interpreter', 'none')
+                text(0.15,-.1,['#Outliers=' num2str(numel(controlidx))],'Units','normalized', 'interpreter', 'none')
             end
             if numel(dataidx) > 0
-                text(0.5,-.1,['# Outliers=' num2str(numel(dataidx))],'Units','normalized', 'interpreter', 'none')
+                text(0.5,-.1,['#Outliers=' num2str(numel(dataidx))],'Units','normalized', 'interpreter', 'none')
             end
             
             
@@ -226,16 +226,18 @@ for i = 1:numel(genotypes) %for each genotype
         end
     end
     %collect and align models
-    t = cell(numSamples,1);
+    numModels = numSamples + 1;
+    t = cell(numModels,1);
     for y = 1:numSamples
         t{y} = results.(geno_varname)(y).PulseModels.NewMean;
     end
+    t{y+1} = results.(geno_varname)(y).PulseModels.OldMean;
     
     max_length = max(cellfun(@length,t));
     total_length = 2* max_length;
-    Z = zeros(numSamples,total_length);
+    Z = zeros(numModels,total_length);
     if numSamples >1
-        for n=1:numSamples
+        for n=1:numModels
             if ~isempty(t{n})
                 X = t{n};
                 T = length(X);
@@ -251,17 +253,22 @@ for i = 1:numel(genotypes) %for each genotype
             end
         end
     end
+    [Z,~] = alignpulses(Z,2);
     %trim down models
     first = find(sum(Z,1),1,'first');
     last = find(sum(Z,1),1,'last');
     Z = Z(:,first:last);
-    plot(ha(j+1),Z');
+    axes(ha(j+1))
+    plot(ha(j+1),Z(end,:)','Color',[.6 .6 .6],'LineWidth',2)
+    hold on
+    plot(ha(j+1),Z(1:end-1,:)');
+    hold off
     axis(ha(j+1),'tight');
     axis([ha(j+1) ha(j+2)],'off');
-    
+
     %print useful information in final panel
     axes(ha(j+2))
-    text(0,1,['Genotype = ' char(genotypes{1})], 'interpreter', 'none')
+    text(0,1,['Genotype = ' char(genotypes{i})], 'interpreter', 'none')
     %collect data folders
     resFolders = [];
     for a= 1:numel(folders)
@@ -287,13 +294,17 @@ for i = 1:numel(genotypes) %for each genotype
     
     
     %save figure
-    set(gcf,'OuterPosition',[500 1000 900 1150])
-    set(gcf,'PaperPositionMode','auto')
+    set(gcf,'OuterPosition',[500 1000 900 1150]);
+    %set(gcf,'PaperPositionMode','auto');
+    %position = get(gcf,'Position');
+    %set(gcf,'PaperPosition',[0.5,0,position(3:4)]);
     if remove_outliers == 1
-        print(gcf,'-depsc',[folders{1} genotypes{i} '_OutliersRemoved.eps'])
+        save2pdf([folders{1} genotypes{i} '_OutliersRemoved.pdf'],gcf)
+        %print(gcf,'-dpdf',[folders{1} genotypes{i} '_OutliersRemoved.pdf'])
         saveas(gcf,[folders{1} genotypes{i} '_OutliersRemoved.fig'])
     else
-        print(gcf,'-depsc',[folders{1} genotypes{i} '.eps'])
+        save2pdf([folders{1} genotypes{i} '.pdf'],gcf)
+        %print(gcf,'-dpdf',[folders{1} genotypes{i} '.pdf'])
         saveas(gcf,[folders{1} genotypes{i} '.fig'])
     end
 end
