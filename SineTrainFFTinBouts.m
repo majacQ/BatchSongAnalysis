@@ -17,7 +17,7 @@ for i = 1:numel(SineStop)
 end
 MaxSineLength= max(x);
 
-%for plotting, get max # of sine bouts per song bout and also total num
+%for plotting, get max # of sine trains per song bout and also total num
 %bouts
 
 a = zeros(numel(SineStart),1);
