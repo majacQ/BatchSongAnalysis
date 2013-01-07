@@ -200,7 +200,7 @@ end
 
 %mode sine carrier freq - DONE
 try
-    ModeSineMFFT = kernel_mode(sMFFT.TrainMaxFFT,min(sMFFT.TrainMaxFFT):.1:max(sMFFT.TrainMaxFFT));
+    ModeSineMFFT = kernel_mode(sMFFT.freqAll,min(sMFFT.freqAll):.1:max(sMFFT.freqAll));
 catch
     ModeSineMFFT = NaN;
 end
@@ -313,7 +313,7 @@ end
 
 %corr coef of pulse carrier freq vs recording time
 try
-    CorrPulseFreq = corr(pulseMFFT.timeAll,pulseMFFT.freqAll);
+    CorrPulseFreq = corr(pulseMFFT.timeAll',pulseMFFT.freqAll');
 catch
     CorrPulseFreq = NaN;
 end
