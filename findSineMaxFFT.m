@@ -16,7 +16,7 @@ for i = 1:NumSine
             wnd = round(Fs*sec);
             z = resample(ym,Fs,10000);
             [Sn,F] = spectrogram(z,wnd,[],nfft,Fs);
-            a = find(F>80 & F<300);
+            a = find(F>50 & F<500);
             freq2 = F(a);
             voltage = abs(Sn(a,:));
             
@@ -28,7 +28,7 @@ for i = 1:NumSine
             wnd = round(0.1*Fs);
             z = resample(ym,Fs,10000);
             [Sn,F] = spectrogram(z,wnd,[],nfft,Fs);
-            a = find(F>80 & F<300);
+            a = find(F>50 & F<500);
             freq2 = F(a);
             voltage = abs(Sn(a,:));
             
