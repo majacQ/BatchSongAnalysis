@@ -14,13 +14,8 @@ function PlotResults(folders,genotypes,control_folders,control_genotypes,remove_
 % genotypes are included in all plots, but statistics are calculated for
 % grand mean of controls.
 % remove_outliers = logical (1/0) to plot with outliers removed or original
-<<<<<<< HEAD
 % data
 %
-=======
-% data 
-% 
->>>>>>> update
 % USAGE
 % PlotAnalysis({'folder1' 'folder2'},{'one' 'two' 'three'},['folder3' 'folder1'},{'Ore-R' 'Canton-S'})
 %
@@ -109,7 +104,6 @@ for i = 1:numel(genotypes) %for each genotype
         Results2Plot = NaN(maxSampleSize,numControls+1);
         Trait = names{j};
         
-<<<<<<< HEAD
         if ~strcmp(Trait,'Sine2PulseNorm')
             
             %collect control data
@@ -230,43 +224,6 @@ for i = 1:numel(genotypes) %for each genotype
             set(get(gca,'YLabel'),'string','Sine2Pulse')
             
         end
-=======
-        if remove_outliers == 1
-            [OutliersRemovedResults2Plot(:,1),controlidx,~] = deleteoutliers(Results2Plot(:,1),.05,1);
-            [OutliersRemovedResults2Plot(:,2),dataidx,~] = deleteoutliers(Results2Plot(:,2),.05,1);
-        else
-            OutliersRemovedResults2Plot = Results2Plot;
-            controlidx= [];
-            dataidx = [];
-        end
-            
-        %determine whether results are sign diff from controls
-        h = ttest2(reshape(OutliersRemovedResults2Plot(:,1:end-1),1,numel(OutliersRemovedResults2Plot(:,1:end-1)))',OutliersRemovedResults2Plot(:,end),0.01);
-        
-        if h == 1
-            %change color of results
-            color = 'r';
-        else
-            color = 'k';
-        end
-        colors = cell(numControls + 1,1);
-        colors(1:end-1) = {'k'};
-        colors{end} = color;
-        
-        
-        %plot in new panel
-        axes(ha(j))
-        title(Trait)
-        errorbarjitter(OutliersRemovedResults2Plot,ha(j),'Ave_Marker','+','Colors',colors,'color_opts',[1 1 1])
-        set(gca,'XTick',[],'YTickLabelMode','auto','XColor',get(gca,'Color'))
-        if numel(controlidx) > 0
-            text(0.15,-.1,['# Outliers=' num2str(numel(controlidx))],'Units','normalized', 'interpreter', 'none')
-        end
-        if numel(dataidx) > 0
-            text(0.5,-.1,['# Outliers=' num2str(numel(dataidx))],'Units','normalized', 'interpreter', 'none')
-        end
-        
->>>>>>> update
     end
     %collect and align models
     t = cell(numSamples,1);
