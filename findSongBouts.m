@@ -71,7 +71,7 @@ Start(Start < 1) = 1;
 Stop(Stop > numel(song)) = numel(song);
 
 %make cell array of bouts
-bout_events     = cell(numel(Start),1);
+bout_events	 = cell(numel(Start),1);
 for i = 1:numel(bout_events)
    bout_events{i} = data.d(Start(i):Stop(i));
 end
