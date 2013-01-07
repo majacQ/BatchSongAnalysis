@@ -1,22 +1,15 @@
 function pMFFT = findPulseMaxFFT(pulseInfo,Fs)
 
-nfft = 100000;
+minFFTPower = 0.01;
+%rewrite in form
+L = cellfun(@(x) numel(x),pulseInfo.x);
+M = num2cell(L);
+NFFT = Fs;
+pFFT = cellfun(@(x,y) fft(x,NFFT)/y,pulseInfo.x,M,'UniformOutput',0);
+%reduce each entry to NFFT/2+1
+V = cellfun(@(x) 2*abs(x(1:NFFT/2+1)),pFFT,'UniformOutput',0);
+[p,i] = cellfun(@max,V);
 
-numPulse = numel(pulseInfo.x);
-
-freq = zeros(numPulse,1);
-time = zeros(numPulse,1);
-%do for each pulse
-for i = 1:numPulse
-    
-    ym = pulseInfo.x{i};
-    r = length(ym);
-    sec = r/10000;
-    wnd = round(Fs*sec);
-    z = resample(ym,Fs,10000);
-    [Sn,F] = spectrogram(z,wnd,[],nfft,Fs);
-    freq(i)= F(abs(Sn) == max(abs(Sn)));
-    time(i) = pulseInfo.wc(i);
-end
-pMFFT.timeAll =time;
-pMFFT.freqAll =freq;
+pMFFT.timeAll =pulseInfo.wc;
+pMFFT.freqAll =i;
+pMFFT.MaxFFT = i(p>minFFTPower);
