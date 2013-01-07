@@ -161,12 +161,12 @@ for i = 1:numel(genotypes) %for each genotype
                 control_varname = genvarname(control_genotypes{k});
                 for m = 1:numel(controls.(control_varname))
                     p = (k*2)/2;
-                    NormS2P2Plot(m,[p p+numControls+1]) = controls.(control_varname)(m).(Trait)([1 2]);
+                    NormS2P2Plot(m,[p p+numControls+1]) = controls.(control_varname)(m).(Trait)([2 1]);
                 end
             end
             %collect results
             for n = 1:numSamples
-                NormS2P2Plot(n,[numControls+1 end]) = results.(geno_varname)(n).(Trait)([1 2]);
+                NormS2P2Plot(n,[numControls+1 end]) = results.(geno_varname)(n).(Trait)([2 1]);
             end
             
             %determine whether results are sign diff from controls
