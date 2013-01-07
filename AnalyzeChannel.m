@@ -89,13 +89,14 @@ end
 %calculate pulse Max FFT
 try
     pulseMFFT = findPulseMaxFFT(pulses,Data.fs);
-    pulseMFFT.freqAll = pulseMFFT.freqAll(pulseMFFT.freqAll > 0);
-    pulseMFFT.timeAll = pulseMFFT.timeAll(pulseMFFT.freqAll > 0);
+%     pulseMFFT.freqAll = pulseMFFT.freqAll(pulseMFFT.freqAll > 0);
+%     pulseMFFT.timeAll = pulseMFFT.timeAll(pulseMFFT.freqAll > 0);
 catch
-   pulseMFFT.freq = {};
-   pulseMFFT.time = {};
-   pulseMFFT.freqAll = [];
-   pulseMFFT.timeAll = [];
+   pulseMFFT.freq = [];
+   pulseMFFT.time = [];
+   pulseMFFT.MaxFFT = [];
+%    pulseMFFT.freqAll = [];
+%    pulseMFFT.timeAll = [];
 end
 
 %%%%%%%%%%%%%
@@ -163,30 +164,20 @@ else
     Sine2PulseTransProb = NaN;
 end
 
-% Pulse/Sine within bout Transition Probabilities - DONE
-
-% if NumTransitions > 0
-%     Pulse2SineTransProb = NumPulse2SineTransitions / NumTransitions;
-% 
-% else
-%     Pulse2SineTransProb = NaN;
-% end
-% 
-
 %mode pulse train length (sec) - DONE
 
 try
-    ModePulseTrainLength = kernel_mode(PulseTrainLengths,min(PulseTrainLengths):1:max(PulseTrainLengths))./Data.fs;
+    MedianPulseTrainLength = median(PulseTrainLengths);
 catch
-    ModePulseTrainLength = NaN;
+    MedianPulseTrainLength = NaN;
 end
 
 %mode sine train length (sec) - DONE
 
 try
-    ModeSineTrainLength = kernel_mode(SineTrainLengths,min(SineTrainLengths):1:max(SineTrainLengths))./Data.fs;
+    MedianSineTrainLength = median(SineTrainLengths);
 catch
-    ModeSineTrainLength = NaN;
+    MedianSineTrainLength = NaN;
 end
 
 %ratio sine to pulse - DONE
@@ -202,14 +193,14 @@ end
 %mode pulse carrier freq - DONE
 
 try
-    ModePulseMFFT = kernel_mode(pulseMFFT.freqAll,min(pulseMFFT.freqAll):.1:max(pulseMFFT.freqAll));
+    ModePulseMFFT = kernel_mode(pulseMFFT.MaxFFT,min(pulseMFFT.MaxFFT):.1:max(pulseMFFT.MaxFFT));
 catch
     ModePulseMFFT = NaN;
 end
 
 %mode sine carrier freq - DONE
 try
-    ModeSineMFFT = kernel_mode(sineMFFT.freqAll,min(sineMFFT.freqAll):.1:max(sineMFFT.freqAll));
+    ModeSineMFFT = kernel_mode(sMFFT.TrainMaxFFT,min(sMFFT.TrainMaxFFT):.1:max(sMFFT.TrainMaxFFT));
 catch
     ModeSineMFFT = NaN;
 end
@@ -230,27 +221,27 @@ SkewnessIPI = skewness(culled_ipi.d,0);
 
 try
     LLRfh = Pulses.Lik_pulse2.LLR_fh(Pulses.Lik_pulse2.LLR_fh > 0);
-    ModeLLRfh = kernel_mode(LLRfh,min(LLRfh ):.1:max(LLRfh));
+    MedianLLRfh = median(LLRfh);
 catch
-    ModeLLRfh = NaN;
+    MedianLLRfh = NaN;
 end
 
 %mode of amplitude of pulses - DONE
 
 try
     PulseAmplitudes = cellfun(@(y) sqrt(mean(y.^2)),pulses.x);
-    ModePulseAmplitudes = kernel_mode(PulseAmplitudes,min(PulseAmplitudes):.0001:max(PulseAmplitudes));
+    MedianPulseAmplitudes = median(PulseAmplitudes);
 catch
-    ModePulseAmplitudes = NaN;
+    MedianPulseAmplitudes = NaN;
 end
 
 %mode of amplitude of sine - DONE
 
 try
     SineAmplitudes = cellfun(@(y) sqrt(mean(y.^2)),sines.clips);
-    ModeSineAmplitudes = kernel_mode(SineAmplitudes,min(SineAmplitudes):.0001:max(SineAmplitudes));
+    MedianSineAmplitudes = kernel_mode(SineAmplitudes,min(SineAmplitudes):.0001:max(SineAmplitudes));
 catch
-    ModeSineAmplitudes = NaN;
+    MedianSineAmplitudes = NaN;
 end
 
 %pulse model - DONE
@@ -345,17 +336,17 @@ Analysis_Results.SineTrainsPerMin = SineTrainsPerMin;
 Analysis_Results.BoutsPerMin = BoutsPerMin;
 Analysis_Results.Sine2PulseTransProb = Sine2PulseTransProb;
 %Analysis_Results.Pulse2SineTransProb = Pulse2SineTransProb;
-Analysis_Results.ModePulseTrainLength = ModePulseTrainLength;
-Analysis_Results.ModeSineTrainLength = ModeSineTrainLength;
+Analysis_Results.MedianPulseTrainLength = MedianPulseTrainLength;
+Analysis_Results.MedianSineTrainLength = MedianSineTrainLength;
 Analysis_Results.Sine2Pulse = Sine2Pulse;
 Analysis_Results.Sine2PulseNorm = Sine2PulseNorm;
 Analysis_Results.ModePulseMFFT = ModePulseMFFT;
 Analysis_Results.ModeSineMFFT = ModeSineMFFT;
 Analysis_Results.ModeIPI = ModeIPI;
 Analysis_Results.SkewnessIPI = SkewnessIPI;
-Analysis_Results.ModeLLRfh = ModeLLRfh;
-Analysis_Results.ModePulseAmplitudes = ModePulseAmplitudes;
-Analysis_Results.ModeSineAmplitudes = ModeSineAmplitudes;
+Analysis_Results.MedianLLRfh = MedianLLRfh;
+Analysis_Results.MedianPulseAmplitudes = MedianPulseAmplitudes;
+Analysis_Results.MedianSineAmplitudes = MedianSineAmplitudes;
 Analysis_Results.CorrSineFreqDynamics=CorrSineFreqDynamics;
 Analysis_Results.CorrBoutDuration=CorrBoutDuration;
 Analysis_Results.CorrPulseTrainDuration=CorrPulseTrainDuration;
