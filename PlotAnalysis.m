@@ -119,8 +119,18 @@ for i = 1:numel(genotypes) %for each genotype
             end
             
             if remove_outliers == 1
-                [OutliersRemovedResults2Plot(:,1),controlidx,~] = deleteoutliers(Results2Plot(:,1),.05,1);
-                [OutliersRemovedResults2Plot(:,2),dataidx,~] = deleteoutliers(Results2Plot(:,2),.05,1);
+                if sum(isnan(Results2Plot(:,1))) ~= numel(Results2Plot(:,1))
+                    [OutliersRemovedResults2Plot(:,1),controlidx,~] = deleteoutliers(Results2Plot(:,1),.05,1);
+                else
+                    OutliersRemovedResults2Plot(:,1) = Results2Plot(:,1);
+                    controlidx = [];
+                end
+                if sum(isnan(Results2Plot(:,2))) ~= numel(Results2Plot(:,2))
+                    [OutliersRemovedResults2Plot(:,2),dataidx,~] = deleteoutliers(Results2Plot(:,2),.05,1); 
+                else
+                    OutliersRemovedResults2Plot(:,2) = Results2Plot(:,2);
+                    dataidx = [];
+                end
             else
                 OutliersRemovedResults2Plot = Results2Plot;
                 controlidx= [];
