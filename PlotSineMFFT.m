@@ -1,12 +1,16 @@
-function PlotGenotypeSineMFFT(folders,genotype)
-%setup tight_subplot grid for 8 plots
-%grab data from file
-%plot in each grid
+function PlotSineMFFT(Data,Sines,Pulses,ha,bar)
 
-function PlotSineMFFT(Data,Sines,Pulses)
+if nargin < 4
+    ha = figure(1);
+    bar = 1;
+else
+    axes(ha)
+end
 
-load('./pulse_model_melanogaster.mat');
-OldPulseModel = cpm;
+if nargin < 4
+    bar = 1;
+end
+    
 pauseThreshold = 0.5e4; %minimum pause between bouts
 LLR_threshold = 50;
 minIPI = 100;
@@ -98,7 +102,9 @@ end
 
 %PLOTTING
 bins = 50;
-xx = linspace(100,200,bins);
+xx = linspace(80,200,bins);
+D(D<80) = NaN;
+D(D>200) = NaN;
 Z = hist(D,xx);
 M = nanmean(D,1);
 S = nanstd(D,1);
@@ -106,30 +112,38 @@ S = nanstd(D,1);
 
 %range of times
 [~,c] =find(S,1,'last');%plot until only 1 sine train continuing
-start = 0;
+if c>30 %1.5sec
+    c = 30;
+end
+start = 500;
 stop = c * 500;
-time_ax = 500:500:stop;
-Z = Z(:,1:c);
-M = M(1:c);
-S = S(1:c);
-pcolor(time_ax,xx,log(Z));
-
-
-colormap cool
-shading flat
-hold on
-%plot mean
-plot(time_ax,M,'k','LineWidth',2)
-plot(time_ax,M+S,'k','LineWidth',1)
-plot(time_ax,M-S,'k','LineWidth',1)
+time_ax = start:500:stop;
+if sum(nansum(D))>0
+    Z = Z(:,1:c);
+    M = M(1:c);
+    S = S(1:c);
+    pcolor(time_ax,xx,log(Z));
     
-
-% plot(time_ax(1),M(1),'oc','MarkerFaceColor','c')
-t = colorbar('peer',gca);
-set(get(t,'ylabel'),'String','Log(N)');
-
-
-set(gca,'XTick',0:1e4:stop);
-set(gca,'XTickLabel',num2cell(0:5));
-xlabel('Time from start of bout (sec)','fontsize',14);
-ylabel('Sine frequency (Hz)','fontsize',14);
+    
+    colormap cool
+    shading flat
+    hold on
+    %plot mean
+    plot(ha,time_ax,M,'k','LineWidth',2)
+    plot(ha,time_ax,M+S,'k','LineWidth',1)
+    plot(ha,time_ax,M-S,'k','LineWidth',1)
+    
+    set(ha,'XTick',0:1e4:stop);
+    set(ha,'XTickLabel',num2cell(0:5));
+    
+    if bar == 1
+        % plot(time_ax(1),M(1),'oc','MarkerFaceColor','c')
+        t = colorbar('peer',gca);
+        set(get(t,'ylabel'),'String','Log(N)');
+        
+        xlabel('Time from start of bout (sec)','fontsize',14);
+        ylabel('Sine frequency (Hz)','fontsize',14);
+    end
+else
+    axis off
+end
