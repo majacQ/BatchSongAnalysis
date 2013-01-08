@@ -40,7 +40,7 @@ for i  = 1:numControls
         for g = 1:numControls
             idx = ~cellfun('isempty',strfind({dir_list.name},control_genotypes{g}));
             if sum(idx) < 1
-                fprintf('Control genotype not found. Check spelling.\n')
+                fprintf('Control genotype not found. Check details.\n')
                 return
             end
         end
@@ -83,7 +83,7 @@ for i  = 1:numel(genotypes)
         for g = 1:numGenotypes
             idx = ~cellfun('isempty',strfind({dir_list.name},genotypes{g}));
             if sum(idx) < 1
-                fprintf('Genotype not found. Check spelling.\n')
+                fprintf('Genotype not found. Check details.\n')
                 return
             end
         end
