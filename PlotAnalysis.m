@@ -37,6 +37,14 @@ for i  = 1:numControls
             control_folders{ii} = [control_folders{ii} '/'];
         end
         dir_list = dir(control_folders{ii});
+        for g = 1:numControls
+            idx = ~cellfun('isempty',strfind({dir_list.name},control_genotypes{g}));
+            if sum(idx) < 1
+                fprintf('Control genotype not found. Check spelling.\n')
+                return
+            end
+        end
+            
         for iii = 1:numel(dir_list)
             file = dir_list(iii).name;
             [~,~,ext] = fileparts(file);
@@ -44,15 +52,15 @@ for i  = 1:numControls
                 count = count + 1;
                 AR = load([control_folders{ii} file], '-mat');
                 if count == 1
-                    Results = AR.Analysis_Results;
+                    ControlResults = AR.Analysis_Results;
                 else
-                    Results = [Results AR.Analysis_Results];
+                    ControlResults = [ControlResults AR.Analysis_Results];
                 end
             end
         end
     end
     varname = genvarname(control_genotypes{i});
-    controls.(varname) = Results;
+    controls.(varname) = ControlResults;
 end
 
 SampleSize = zeros(1,numControls+1);
@@ -72,6 +80,13 @@ for i  = 1:numel(genotypes)
             folders{ii} = [folders{ii} '/'];
         end
         dir_list = dir(folders{ii});
+        for g = 1:numGenotypes
+            idx = ~cellfun('isempty',strfind({dir_list.name},genotypes{g}));
+            if sum(idx) < 1
+                fprintf('Genotype not found. Check spelling.\n')
+                return
+            end
+        end
         for iii = 1:numel(dir_list)
             file = dir_list(iii).name;
             [~,~,ext] = fileparts(file);

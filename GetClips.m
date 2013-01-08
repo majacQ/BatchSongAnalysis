@@ -19,7 +19,7 @@ else
   error('invalid input args');
 end
 
-clips=cell(1,length(start_times));
+clips=cell(0,length(start_times));
 for c=1:length(start_times)
   clips{c} = data(start_times(c):stop_times(c));
 end
