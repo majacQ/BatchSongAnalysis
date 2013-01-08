@@ -254,76 +254,16 @@ PulseModels.NewStd = Pulses.pulse_model2.newfhS;
 %slope of sine carrier freq within bouts
 numBouts = numel(Bouts.Start);
 if numBouts >0
-    %concatenate sines within bouts
-    numBouts = numel(Bouts.Start);
-    CatSineFreq = cell(numBouts,1);
-    CatSineTime = CatSineFreq;
-    for i = 1:numBouts
-        idx = ismember(sines.start,Bouts.Start(i):Bouts.Stop(i));
-        s = find(idx,4);
-        CatSineFreq{i} = vertcat(sineMFFT.freq{s});
-        CatSineTime{i} = horzcat(sineMFFT.time{s});
-    end
-%     warning('off','stats:statrobustfit:IterationLimit')
-    %calculate corr in each sine train
-    %first, eliminate all trains consisting of fewer than three events
-    idx = cellfun(@(x) sum(~isnan(x))>2,CatSineTime,'UniformOutput',0);
-    time = CatSineTime(cell2mat(idx));
-    freq = CatSineFreq(cell2mat(idx));
+ 
+    [time,freq] = SineFFTTrainsToBouts(Bouts,sines,sineMFFT,4);
     corrs = cellfun(@(x,y) corr(x',y),time,freq);
     
-    
-%     [brob,stats] = cellfun(@(x,y) robustfit(x,y),time,freq,'UniformOutput',0);
-%     allSlopes = cellfun(@(x) x(2),brob);
-%     allCorr = cellfun(@(x) x.coeffcorr(1,2),stats);
     if ~isempty(corrs)
-%         SlopeSineFreqDynamics = kernel_mode(allSlopes,min(allSlopes):.1:max(allSlopes));%Not used currently
         CorrSineFreqDynamics = kernel_mode(corrs,min(corrs):.1:max(corrs));
     else
-%         SlopeSineFreqDynamics = NaN;
         CorrSineFreqDynamics = NaN;
     end
-%     warning('on','stats:statrobustfit:IterationLimit')
-    
-    
-%     warning('off','stats:statrobustfit:IterationLimit')
-%     %calculate slope in each sine train
-%     %first, eliminate all trains consisting of a single event
-%     idx = cellfun(@(x) sum(~isnan(x))>2,sineMFFT.time,'UniformOutput',0);
-%     time = sineMFFT.time(cell2mat(idx));
-%     freq = sineMFFT.freq(cell2mat(idx));
-%     [brob,stats] = cellfun(@(x,y) robustfit(x,y),time,freq,'UniformOutput',0);
-%     allSlopes = cellfun(@(x) x(2),brob);
-%     allCorr = cellfun(@(x) x.coeffcorr(1,2),stats);
-%     SlopeSineFreqDynamics = kernel_mode(allSlopes,min(allSlopes):.1:max(allSlopes));%Not used currently
-%     CorrSineFreqDynamics = kernel_mode(allCorr,min(allCorr):.1:max(allCorr));
-%     warning('on','stats:statrobustfit:IterationLimit')
-%     
-%     [dFreq,dTime] = SineTrainFFTinBouts(Sines,sineMFFT,Bouts);
-%     
-%     %concatenate along second dimension, calc cov and corr
-%     maxTrainsPerBout = size(dFreq,3);
-%     freq = dFreq(:,:,1);
-%     time = dTime(:,:,1);
-%     if maxTrainsPerBout > 4
-%         maxTrainsPerBout = 4;
-%     end
-%     for i = 2:maxTrainsPerBout
-%         freq = cat(2,freq,dFreq(:,:,i));
-%         time = cat(2,time,dTime(:,:,i));
-%     end
-%     allSlopes = zeros(size(time,1),1);
-%     for i = 1:numel(allSlopes)
-% %         a = nancov(time(i,:),freq(i,:));
-% %         allCorrs(i) = a(1,2) / (sqrt(a(1,1) * a(2,2)));
-%         if sum(~isnan(time(1,:))) > 1
-%             brob = robustfit(time(i,:),freq(i,:));
-%             allSlopes(i) = brob(2);
-%         else
-%             allSlopes(i) = NaN;
-%         end
-%     end
-%     SlopeSineFreqDynamics = kernel_mode(allSlopes,min(allSlopes):.1:max(allSlopes));
+
 else
     SlopeSineFreqDynamics = NaN;
     CorrSineFreqDynamics = NaN;
