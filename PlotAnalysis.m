@@ -283,29 +283,29 @@ for i = 1:numel(genotypes) %for each genotype
 
     %print useful information in final panel
     axes(ha(j+2))
-    text(0,1,['Genotype = ' char(genotypes{i})], 'interpreter', 'none')
+    text(-.15,1,['Genotype = ' char(genotypes{i})], 'interpreter', 'none')
     %collect data folders
     resFolders = [];
     for a= 1:numel(folders)
         folder = regexp(folders{a},'/','split');
-        resFolders= [resFolders '  ' folder(end-1)];
+        resFolders= [resFolders folder(end-1)];
     end
-    text(0,.8,['Analysis Folders = ' resFolders], 'interpreter', 'none')
+    text(-.15,.8,['Analysis Folders = ' resFolders], 'interpreter', 'none')
     
     %collect controls
     conGenos = [];
     for a= 1:numControls
-        conGenos = [conGenos '  ' char(control_genotypes{a})];
+        conGenos = [conGenos char(control_genotypes{a})];
     end
-    text(0,.5,['Controls = ' conGenos], 'interpreter', 'none')
+    text(-.15,.5,['Controls = ' conGenos], 'interpreter', 'none')
     
     %collect control folders
     conFolders = [];
     for a= 1:numel(folders)
         folder = regexp(control_folders{a},'/','split');
-        conFolders= [conFolders '  ' folder(end-1)];
+        conFolders= [conFolders folder(end-1)];
     end
-    text(0,.3,['Control Folders = ' conFolders], 'interpreter', 'none')
+    text(-.15,.3,['Control Folders = ' conFolders], 'interpreter', 'none')
     
     
     %save figure

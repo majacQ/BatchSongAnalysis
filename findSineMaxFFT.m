@@ -2,7 +2,7 @@ function sMFFT = findSineMaxFFT(winnowed_sine,Fs)
 
 nfft = 100000;
 
-NumSine = size(winnowed_sine.clips,1);
+NumSine = numel(winnowed_sine.clips);
 maxFFTFreq = cell(NumSine,1);
 maxFFTFreqTime = cell(NumSine,1);
 % [poolavail,isOpen] = check_open_pool;

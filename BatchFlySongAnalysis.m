@@ -4,7 +4,6 @@ function BatchFlySongAnalysis(daq_file,genotypes,recording_channels,control_geno
 
 % USAGE
 %
-% path2daq: full path to 
 %
 % daq_file: full path and name of daq file (time stamp) that was previously 
 % segmented with FlySongSegmenterDAQ (e.g. "20110510132426.daq"). If no path 
