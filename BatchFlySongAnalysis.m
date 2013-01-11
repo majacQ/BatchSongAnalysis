@@ -97,6 +97,8 @@ check_close_pool(poolavail,isOpen);
 %save matrices of analyzed results in folder results_timestamp
 %filename = daqroot_chN_genotypeName_timestampofanalysis.m
 
+[s,m,i]=fileattrib([path2daq '/' results_folder],'+w','g','s');
+[s,m,i]=fileattrib([path2daq '/' results_folder],'-w','o','s');
 
 
 function my_save(result_path,Analysis_Results)
