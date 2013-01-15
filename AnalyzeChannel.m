@@ -4,7 +4,7 @@ function Analysis_Results = AnalyzeChannel(filename)
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 % Load mat file
 %%%%%%%%%%%%%%%%%%%%%%%%%%
-
+addpath('SplitVec')
 load(filename,'-mat');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -158,16 +158,19 @@ BoutsPerMin = numel(Bouts.Start) * 60 / (recording_duration / Data.fs);
 % Sine/Pulse within bout Transition Probabilities - DONE
 
 if NumTransitions > 0
-    Sine2PulseTransProb = NumSine2PulseTransitions / NumTransitions;
-
+    %Sine2PulseTransProb = NumSine2PulseTransitions / NumTransitions;
+    TransProb = TranProb(Data,sines,pulses);
+    NulltoSongTransProb = [TransProb(1,2) TransProb(1,3)];
+    SinetoPulseTransProb = [TransProb(2,3) TransProb(3,2)];
 else
-    Sine2PulseTransProb = NaN;
+    NulltoSongTransProb = [NaN NaN];
+    SinetoPulseTransProb = [NaN NaN];
 end
 
 %mode pulse train length (sec) - DONE
 
 try
-    MedianPulseTrainLength = median(PulseTrainLengths);
+    MedianPulseTrainLength = median(PulseTrainLengths) / Data.fs;
 catch
     MedianPulseTrainLength = NaN;
 end
@@ -175,7 +178,7 @@ end
 %mode sine train length (sec) - DONE
 
 try
-    MedianSineTrainLength = median(SineTrainLengths);
+    MedianSineTrainLength = median(SineTrainLengths)/ Data.fs;
 catch
     MedianSineTrainLength = NaN;
 end
@@ -184,7 +187,7 @@ end
 
 if PulseTotal > 0
     Sine2Pulse = SineTotal ./ PulseTotal;
-    Sine2PulseNorm = [log10(Sine2Pulse) log10(sqrt(SineTotal.* PulseTotal)./(recording_duration-SineTotal-PulseTotal))];
+    Sine2PulseNorm = [log10(sqrt(SineTotal.* PulseTotal)./(recording_duration-SineTotal-PulseTotal)) log10(Sine2Pulse)];
 else
     Sine2Pulse = NaN;
     Sine2PulseNorm = [NaN NaN];
@@ -267,6 +270,8 @@ if numBouts >0
 else
     SlopeSineFreqDynamics = NaN;
     CorrSineFreqDynamics = NaN;
+    time = NaN;
+    freq = NaN;
 end
 
 %corr coef of bout duration vs recording time
@@ -327,7 +332,8 @@ timestamp = datestr(now,'yyyymmddHHMMSS');
 Analysis_Results.PulseTrainsPerMin = PulseTrainsPerMin;
 Analysis_Results.SineTrainsPerMin = SineTrainsPerMin;
 Analysis_Results.BoutsPerMin = BoutsPerMin;
-Analysis_Results.Sine2PulseTransProb = Sine2PulseTransProb;
+Analysis_Results.NulltoSongTransProb = NulltoSongTransProb;
+Analysis_Results.SinetoPulseTransProb = SinetoPulseTransProb;%and pulse2sine
 %Analysis_Results.Pulse2SineTransProb = Pulse2SineTransProb;
 Analysis_Results.MedianPulseTrainLength = MedianPulseTrainLength;
 Analysis_Results.MedianSineTrainLength = MedianSineTrainLength;
@@ -336,7 +342,7 @@ Analysis_Results.Sine2PulseNorm = Sine2PulseNorm;
 Analysis_Results.ModePulseMFFT = ModePulseMFFT;
 Analysis_Results.ModeSineMFFT = ModeSineMFFT;
 Analysis_Results.ModeIPI = ModeIPI;
-Analysis_Results.SkewnessIPI = SkewnessIPI;
+%Analysis_Results.SkewnessIPI = SkewnessIPI;
 Analysis_Results.MedianLLRfh = MedianLLRfh;
 Analysis_Results.MedianPulseAmplitudes = MedianPulseAmplitudes;
 Analysis_Results.MedianSineAmplitudes = MedianSineAmplitudes;
@@ -351,3 +357,6 @@ Analysis_Results.CorrIpi=CorrIpi;
 Analysis_Results.PulseModels = PulseModels;
 
 Analysis_Results.timestamp = timestamp;
+
+Analysis_Results.SineFFTBouts.time = time;
+Analysis_Results.SineFFTBouts.freq = freq;
