@@ -118,7 +118,9 @@ for i = 1:numel(genotypes) %for each genotype
     for j = 1:22
         Results2Plot = NaN(maxSampleSize,numControls+1);
         Trait = names{j};
-        
+        controlOutliers= [];
+        dataOutliers = [];
+        color = 'k';
         if ~strcmp(Trait,'Sine2PulseNorm') && ~strcmp(Trait,'NulltoSongTransProb')&& ~strcmp(Trait,'SinetoPulseTransProb')
 
             %collect control data
@@ -136,20 +138,28 @@ for i = 1:numel(genotypes) %for each genotype
             if remove_outliers == 1
                 if sum(isnan(Results2Plot(:,1:end-1))) ~= numel(Results2Plot(:,1:end-1))
                     [OutliersRemovedResults2Plot(:,1:end-1),controlidx,~] = deleteoutliers(Results2Plot(:,1:end-1),.05,1);
+                    controlOutliers = numel(controlidx) - sum(isnan(Results2Plot(:,1:end-1)));
+                    if controlOutliers == 0
+                        controlOutliers = [];
+                    end
                 else
                     OutliersRemovedResults2Plot(:,1:end-1) = Results2Plot(:,1:end-1);
-                    controlidx = [];
+                    controlOutliers = [];
                 end
                 if sum(isnan(Results2Plot(:,end))) ~= numel(Results2Plot(:,end))
                     [OutliersRemovedResults2Plot(:,end),dataidx,~] = deleteoutliers(Results2Plot(:,end),.05,1); 
+                    dataOutliers= numel(dataidx) - sum(isnan(Results2Plot(:,end)));
+                    if dataOutliers == 0
+                        dataOutliers = [];
+                    end
                 else
                     OutliersRemovedResults2Plot(:,end) = Results2Plot(:,end);
-                    dataidx = [];
+                    dataOutliers = [];
                 end
             else
                 OutliersRemovedResults2Plot = Results2Plot;
-                controlidx= [];
-                dataidx = [];
+                controlOutliers= [];
+                dataOutliers = [];
             end
             
             %determine whether results are sign diff from controls
@@ -171,11 +181,11 @@ for i = 1:numel(genotypes) %for each genotype
             title(Trait)
             errorbarjitter(OutliersRemovedResults2Plot,ha(j),'Ave_Marker','+','Colors',colors,'color_opts',[1 1 1])
             set(gca,'XTick',[],'YTickLabelMode','auto','XColor',get(gca,'Color'))
-            if numel(controlidx) > 0
-                text(0.15,-.1,['#Outliers=' num2str(numel(controlidx))],'Units','normalized', 'interpreter', 'none')
+            if numel(controlOutliers) > 0
+                text(0.15,-.1,['#Outliers=' num2str(controlOutliers)],'Units','normalized', 'interpreter', 'none')
             end
-            if numel(dataidx) > 0
-                text(0.5,-.1,['#Outliers=' num2str(numel(dataidx))],'Units','normalized', 'interpreter', 'none')
+            if numel(dataOutliers) > 0
+                text(0.5,-.1,['#Outliers=' num2str(dataOutliers)],'Units','normalized', 'interpreter', 'none')
             end
             
             
@@ -185,42 +195,51 @@ for i = 1:numel(genotypes) %for each genotype
             for k = 1:numControls
                 control_varname = genvarname(control_genotypes{k});
                 for m = 1:numel(controls.(control_varname))
-                    p = (k*2)/2;
-                    NormS2P2Plot(m,[p p+numControls+1]) = controls.(control_varname)(m).(Trait)([1 2]);
+                    p = k + (k-1);
+                    NormS2P2Plot(m,[p p+1]) = controls.(control_varname)(m).(Trait)([1 2]);%place 2 columns of data in neighboring columns
                 end
             end
             %collect results
             for n = 1:numSamples
-                NormS2P2Plot(n,[numControls+1 end]) = results.(geno_varname)(n).(Trait)([1 2]);
+                NormS2P2Plot(n,[end-1 end]) = results.(geno_varname)(n).(Trait)([1 2]);%place 2 columns of data in neighboring columns
             end
             
             OutliersRemovedNormS2P2Plot = NaN(size(NormS2P2Plot));
             if remove_outliers == 1
-                if sum(isnan(NormS2P2Plot(:,1:2:end-3))) ~= numel(NormS2P2Plot(:,1:2:end-3))
-                    [OutliersRemovedNormS2P2Plot(:,1:2:end-3),controlidx,~] = deleteoutliers(NormS2P2Plot(:,1:2:end-3),.05,1);
-                else
-                    OutliersRemovedNormS2P2Plot(:,1:2:end-3) = NormS2P2Plot(:,1:2:end-3);
-                    controlidx = [];
-                end
-                if sum(isnan(NormS2P2Plot(:,2:2:end-2))) ~= numel(NormS2P2Plot(:,2:2:end-2))
-                    [OutliersRemovedNormS2P2Plot(:,2:2:end-2),controlidx,~] = deleteoutliers(NormS2P2Plot(:,2:2:end-2),.05,1);
-                else
-                    OutliersRemovedNormS2P2Plot(:,2:2:end-2) = NormS2P2Plot(:,2:2:end-2);
-                    controlidx = [];
+                for m = 1:size(NormS2P2Plot,2)
+                    if sum(isnan(NormS2P2Plot(:,m))) ~= numel(NormS2P2Plot(:,m))
+                        OutliersRemovedNormS2P2Plot(:,m) = deleteoutliers(NormS2P2Plot(:,m),.05,1);
+                    else
+                        OutliersRemovedNormS2P2Plot(:,m) = NormS2P2Plot(:,m);
+                        controlidx = [];
+                    end
                 end
                 
-                if sum(isnan(NormS2P2Plot(:,end-1))) ~= numel(NormS2P2Plot(:,end-1))
-                    [OutliersRemovedNormS2P2Plot(:,end-1),dataidx,~] = deleteoutliers(NormS2P2Plot(:,end-1),.05,1); 
-                else
-                    OutliersRemovedNormS2P2Plot(:,end-1) = NormS2P2Plot(:,end-1);
-                    dataidx = [];
-                end
-                if sum(isnan(NormS2P2Plot(:,end))) ~= numel(NormS2P2Plot(:,end))
-                    [OutliersRemovedNormS2P2Plot(:,end),dataidx,~] = deleteoutliers(NormS2P2Plot(:,end),.05,1); 
-                else
-                    OutliersRemovedNormS2P2Plot(:,end) = NormS2P2Plot(:,end);
-                    dataidx = [];
-                end
+%                 if sum(isnan(NormS2P2Plot(:,1:2:end-3))) ~= numel(NormS2P2Plot(:,1:2:end-3))
+%                     [OutliersRemovedNormS2P2Plot(:,1:2:end-3),controlidx,~] = deleteoutliers(NormS2P2Plot(:,1:2:end-3),.05,1);
+%                 else
+%                     OutliersRemovedNormS2P2Plot(:,1:2:end-3) = NormS2P2Plot(:,1:2:end-3);
+%                     controlidx = [];
+%                 end
+%                 if sum(isnan(NormS2P2Plot(:,2:2:end-2))) ~= numel(NormS2P2Plot(:,2:2:end-2))
+%                     [OutliersRemovedNormS2P2Plot(:,2:2:end-2),controlidx,~] = deleteoutliers(NormS2P2Plot(:,2:2:end-2),.05,1);
+%                 else
+%                     OutliersRemovedNormS2P2Plot(:,2:2:end-2) = NormS2P2Plot(:,2:2:end-2);
+%                     controlidx = [];
+%                 end
+%                 
+%                 if sum(isnan(NormS2P2Plot(:,end-1))) ~= numel(NormS2P2Plot(:,end-1))
+%                     [OutliersRemovedNormS2P2Plot(:,end-1),dataidx,~] = deleteoutliers(NormS2P2Plot(:,end-1),.05,1);
+%                 else
+%                     OutliersRemovedNormS2P2Plot(:,end-1) = NormS2P2Plot(:,end-1);
+%                     dataidx = [];
+%                 end
+%                 if sum(isnan(NormS2P2Plot(:,end))) ~= numel(NormS2P2Plot(:,end))
+%                     [OutliersRemovedNormS2P2Plot(:,end),dataidx,~] = deleteoutliers(NormS2P2Plot(:,end),.05,1);
+%                 else
+%                     OutliersRemovedNormS2P2Plot(:,end) = NormS2P2Plot(:,end);
+%                     dataidx = [];
+%                 end
             else
                 OutliersRemovedNormS2P2Plot = NormS2P2Plot;
                 controlidx= [];
@@ -230,19 +249,18 @@ for i = 1:numel(genotypes) %for each genotype
             
             %determine whether results are sign diff from controls
             %make arrays for aoctool
-            A = reshape(OutliersRemovedNormS2P2Plot,[],2);
-            x = A(:,1);
-            y = A(:,2);
+            x = reshape(OutliersRemovedNormS2P2Plot(:,1:2:end-1),[],1);
+            y = reshape(OutliersRemovedNormS2P2Plot(:,2:2:end),[],1);
             group = ones(size(x,1),1);
             group(1:numControls*maxSampleSize) = 0;
-            [~,~,h] = aoctool(x,y,group,[],[],[],[],'off');
+            [~,T,h] = aoctool(x,y,group,[],[],[],[],'off');
             
-            [Introw,~] = find(strcmp(h,'Intercept') == 1);
-            [Sloperow,~] = find(strcmp(h,'Slope') == 1);
-            [~,Probcol] = find(strcmp(h,'Prob>|T|') == 1);
+            [GroupRow,~] = find(strcmp(T,'group') == 1);
+            [GroupXRow,~] = find(strcmp(T,'group*x') == 1);
+            [~,Probcol] = find(strcmp(T,'Prob>F') == 1);
             
             
-            if h{Introw,Probcol} < 0.01 || h{Sloperow,Probcol} < 0.01
+            if T{GroupRow,Probcol} < 0.01 || T{GroupXRow,Probcol} < 0.01
                 %change color of results
                 color = 'r';
             else
@@ -254,9 +272,9 @@ for i = 1:numel(genotypes) %for each genotype
             title(Trait)
             hold on
             for k = 1:numControls
-                p = (k*2)/2;
+                p = k + (k-1);
                 x = OutliersRemovedNormS2P2Plot(:,p);
-                y = OutliersRemovedNormS2P2Plot(:,p+numControls+1);
+                y = OutliersRemovedNormS2P2Plot(:,p+1);
                 scatter(x,y,'k')
                 brob = robustfit(x,y);
                 plot(x,brob(1)+brob(2)*x,'k')
@@ -267,7 +285,7 @@ for i = 1:numel(genotypes) %for each genotype
                 %test trait one
                 h1 = ttest2(reshape(OutliersRemovedNormS2P2Plot(:,1:2:end-3),1,numel(OutliersRemovedNormS2P2Plot(:,1:2:end-3)))',OutliersRemovedNormS2P2Plot(:,end-1),0.01);
                 h2 = ttest2(reshape(OutliersRemovedNormS2P2Plot(:,2:2:end-2),1,numel(OutliersRemovedNormS2P2Plot(:,2:2:end-2)))',OutliersRemovedNormS2P2Plot(:,end),0.01);
-                if h1 == 1 || h2 == 1
+                if h1 == 1 || h2 == 1 || color == 'r'
                     %change color of results
                     color = 'r';
                 else
@@ -276,13 +294,12 @@ for i = 1:numel(genotypes) %for each genotype
                 
             end
             
-            x = OutliersRemovedNormS2P2Plot(:,numControls+1);
+            x = OutliersRemovedNormS2P2Plot(:,end-1);
             y = OutliersRemovedNormS2P2Plot(:,end);
             scatter(x,y,color)
             brob = robustfit(x,y);
             plot(x,brob(1)+brob(2)*x,color)
             
-            set(gca,'XTick',[],'YTickLabelMode','auto')
             if strcmp(Trait,'Sine2PulseNorm')
                 set(get(gca,'Xlabel'),'string','Amt Song')
                 set(get(gca,'YLabel'),'string','Sine2Pulse')
@@ -293,7 +310,12 @@ for i = 1:numel(genotypes) %for each genotype
                 set(get(gca,'Xlabel'),'string','Sine To Pulse')
                 set(get(gca,'YLabel'),'string','Pulse To Sine')                
             end
+            set(gca,'YTickLabelMode','auto')
+            set(gca,'XTickLabelMode','auto')
         end
+        color = 'k';
+        controlidx= [];
+        dataidx = [];
     end
     %collect and align models
     numModels = numSamples + 1;
