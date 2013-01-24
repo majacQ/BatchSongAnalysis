@@ -1,6 +1,6 @@
 %Batch Fly Song Analysis
 
-function BatchFlySongAnalysis(daq_file,genotypes,recording_channels,control_genotypes)
+function BatchFlySongAnalysis(daq_file,genotypes,recording_channels,control_genotypes,LLR_threshold)
 
 % USAGE
 %
@@ -18,8 +18,14 @@ function BatchFlySongAnalysis(daq_file,genotypes,recording_channels,control_geno
 % of the names specified in "genotypes". If multiple, enter cell array
 % *e.g. {'wild_type' 'other_wild_type'}
 %
+% LLR_threshold = can be set by user. Usually want to run twice, once at 50
+% and once at 0
 
 [poolavail,isOpen] = check_open_pool;
+
+if nargin < 5
+    LLR_threshold = 50;
+end
 
 num_genotypes = numel(genotypes);
 
@@ -42,7 +48,7 @@ end
 
 %establish Results folder 
 timestamp = datestr(now,'yyyymmddHHMMSS');
-results_folder = [daq_root '_Results_'  timestamp];
+results_folder = [daq_root '_Results_LLR=' num2str(LLR_threshold) '_' timestamp];
 mkdir([path2daq '/' results_folder]);
 
 %get _out folder info
@@ -76,7 +82,7 @@ parfor y = 1:file_num
         genotype = all_genotypes{str2num(channel)};
 
         %send each analysis job to separate cluster node
-        Analysis_Results = AnalyzeChannel(path_file);
+        Analysis_Results = AnalyzeChannel(path_file,LLR_threshold);
         
         if sum(ismember(control_genotypes,genotype)) == 0
             result_path = [path2daq '/' results_folder '/' root '_' genotype '_' timestamp '.mat'];
@@ -97,8 +103,6 @@ check_close_pool(poolavail,isOpen);
 %save matrices of analyzed results in folder results_timestamp
 %filename = daqroot_chN_genotypeName_timestampofanalysis.m
 
-[s,m,i]=fileattrib([path2daq '/' results_folder],'+w','g','s');
-[s,m,i]=fileattrib([path2daq '/' results_folder],'-w','o','s');
 
 
 function my_save(result_path,Analysis_Results)

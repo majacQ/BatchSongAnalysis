@@ -1,4 +1,4 @@
-function Analysis_Results = AnalyzeChannel(filename)
+function Analysis_Results = AnalyzeChannel(filename,LLR_threshold)
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -14,7 +14,9 @@ load(filename,'-mat');
 load('./pulse_model_melanogaster.mat');
 OldPulseModel = cpm;
 pauseThreshold = 0.5e4; %minimum pause between bouts
-LLR_threshold = 50;
+if nargin < 2
+    LLR_threshold = 50;
+end
 minIPI = 100;
 maxIPI = 3000;
 try
