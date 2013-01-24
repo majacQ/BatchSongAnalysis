@@ -1,4 +1,4 @@
-function Analysis_Results = AnalyzeChannel(filename,LLR_threshold)
+function [Stats2Plot, AllStats] = AnalyzeChannel(filename,LLR_threshold)
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -195,6 +195,10 @@ else
     Sine2PulseNorm = [NaN NaN];
 end
 
+%ratio sine to pulse per bout ---- TO DO -----
+
+
+
 %mode pulse carrier freq - DONE
 
 try
@@ -328,37 +332,70 @@ end
 
 timestamp = datestr(now,'yyyymmddHHMMSS');
 
-%Analysis_Results.ipi = ipi;
-%Analysis_Results.culled_ipi = culled_ipi;
+%Stats2Plot.ipi = ipi;
+%Stats2Plot.culled_ipi = culled_ipi;
 
-Analysis_Results.PulseTrainsPerMin = PulseTrainsPerMin;
-Analysis_Results.SineTrainsPerMin = SineTrainsPerMin;
-Analysis_Results.BoutsPerMin = BoutsPerMin;
-Analysis_Results.NulltoSongTransProb = NulltoSongTransProb;
-Analysis_Results.SinetoPulseTransProb = SinetoPulseTransProb;%and pulse2sine
-%Analysis_Results.Pulse2SineTransProb = Pulse2SineTransProb;
-Analysis_Results.MedianPulseTrainLength = MedianPulseTrainLength;
-Analysis_Results.MedianSineTrainLength = MedianSineTrainLength;
-Analysis_Results.Sine2Pulse = Sine2Pulse;
-Analysis_Results.Sine2PulseNorm = Sine2PulseNorm;
-Analysis_Results.ModePulseMFFT = ModePulseMFFT;
-Analysis_Results.ModeSineMFFT = ModeSineMFFT;
-Analysis_Results.ModeIPI = ModeIPI;
-%Analysis_Results.SkewnessIPI = SkewnessIPI;
-Analysis_Results.MedianLLRfh = MedianLLRfh;
-Analysis_Results.MedianPulseAmplitudes = MedianPulseAmplitudes;
-Analysis_Results.MedianSineAmplitudes = MedianSineAmplitudes;
-Analysis_Results.CorrSineFreqDynamics=CorrSineFreqDynamics;
-Analysis_Results.CorrBoutDuration=CorrBoutDuration;
-Analysis_Results.CorrPulseTrainDuration=CorrPulseTrainDuration;
-Analysis_Results.CorrSineTrainDuration=CorrSineTrainDuration;
-Analysis_Results.CorrSineFreq=CorrSineFreq;
-Analysis_Results.CorrPulseFreq=CorrPulseFreq;
-Analysis_Results.CorrIpi=CorrIpi;
+Stats2Plot.PulseTrainsPerMin = PulseTrainsPerMin;
+Stats2Plot.SineTrainsPerMin = SineTrainsPerMin;
+Stats2Plot.BoutsPerMin = BoutsPerMin;
+Stats2Plot.NulltoSongTransProb = NulltoSongTransProb;
+Stats2Plot.SinetoPulseTransProb = SinetoPulseTransProb;%and pulse2sine
+%Stats2Plot.Pulse2SineTransProb = Pulse2SineTransProb;
+Stats2Plot.MedianPulseTrainLength = MedianPulseTrainLength;
+Stats2Plot.MedianSineTrainLength = MedianSineTrainLength;
+Stats2Plot.Sine2Pulse = Sine2Pulse;
+Stats2Plot.Sine2PulseNorm = Sine2PulseNorm;
+Stats2Plot.ModePulseMFFT = ModePulseMFFT;
+Stats2Plot.ModeSineMFFT = ModeSineMFFT;
+Stats2Plot.ModeIPI = ModeIPI;
+%Stats2Plot.SkewnessIPI = SkewnessIPI;
+Stats2Plot.MedianLLRfh = MedianLLRfh;
+Stats2Plot.MedianPulseAmplitudes = MedianPulseAmplitudes;
+Stats2Plot.MedianSineAmplitudes = MedianSineAmplitudes;
+Stats2Plot.CorrSineFreqDynamics=CorrSineFreqDynamics;
+Stats2Plot.CorrBoutDuration=CorrBoutDuration;
+Stats2Plot.CorrPulseTrainDuration=CorrPulseTrainDuration;
+Stats2Plot.CorrSineTrainDuration=CorrSineTrainDuration;
+Stats2Plot.CorrSineFreq=CorrSineFreq;
+Stats2Plot.CorrPulseFreq=CorrPulseFreq;
+Stats2Plot.CorrIpi=CorrIpi;
 
-Analysis_Results.PulseModels = PulseModels;
+Stats2Plot.PulseModels = PulseModels;
 
-Analysis_Results.timestamp = timestamp;
+Stats2Plot.timestamp = timestamp;
 
-Analysis_Results.SineFFTBouts.time = time;
-Analysis_Results.SineFFTBouts.freq = freq;
+Stats2Plot.SineFFTBouts.time = time;
+Stats2Plot.SineFFTBouts.freq = freq;
+
+
+
+AllStats.PulseTrainsPerMin = PulseTrainsPerMin;
+AllStats.SineTrainsPerMin = SineTrainsPerMin;
+AllStats.BoutsPerMin = BoutsPerMin;
+AllStats.TransProb = TransProb;
+AllStats.MedianPulseTrainLength = MedianPulseTrainLength;
+AllStats.MedianSineTrainLength = MedianSineTrainLength;
+AllStats.Sine2Pulse = Sine2Pulse;
+AllStats.Sine2PulseNorm = Sine2PulseNorm;
+AllStats.ModePulseMFFT = ModePulseMFFT;
+AllStats.ModeSineMFFT = ModeSineMFFT;
+AllStats.ModeIPI = ModeIPI;
+AllStats.SkewnessIPI = SkewnessIPI;
+AllStats.MedianLLRfh = MedianLLRfh;
+AllStats.MedianPulseAmplitudes = MedianPulseAmplitudes;
+AllStats.MedianSineAmplitudes = MedianSineAmplitudes;
+AllStats.CorrSineFreqDynamics=CorrSineFreqDynamics;
+AllStats.CorrBoutDuration=CorrBoutDuration;
+AllStats.CorrPulseTrainDuration=CorrPulseTrainDuration;
+AllStats.CorrSineTrainDuration=CorrSineTrainDuration;
+AllStats.CorrSineFreq=CorrSineFreq;
+AllStats.CorrPulseFreq=CorrPulseFreq;
+AllStats.CorrIpi=CorrIpi;
+
+AllStats.PulseModels = PulseModels;
+AllStats.SineFFTBouts.time = time;
+AllStats.SineFFTBouts.freq = freq;
+
+AllStats.filename = filename;
+AllStats.timestamp = timestamp;
+
