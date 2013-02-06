@@ -3,6 +3,7 @@ fs = Data.fs;
 minPause = 0.5*fs;
 
 %collect known sine and pulse events
+%pauses == 1, sines == 2, pulses == 3
 X = ones(1,numel(Data.d));
 for i = 1 : numel(sines.start)
     X(sines.start(i):sines.stop(i)) = 2;
