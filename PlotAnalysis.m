@@ -187,7 +187,7 @@ for i = 1:numel(genotypes) %for each genotype
             if numel(dataOutliers) > 0
                 text(0.5,-.1,['#Outliers=' num2str(dataOutliers)],'Units','normalized', 'interpreter', 'none')
             end
-            
+            ylim(ha(j),[min(min(OutliersRemovedResults2Plot)) max(max(OutliersRemovedResults2Plot))]);
             
         elseif strcmp(Trait,'Sine2PulseNorm')%plot scatter plots for normalized sine to pulse
             NormS2P2Plot = NaN(maxSampleSize,2*(numControls+1));
@@ -258,10 +258,10 @@ for i = 1:numel(genotypes) %for each genotype
                 catch
                 end
             end
-            
+            hold off
             set(gca,'YTickLabelMode','auto')
             set(gca,'XTickLabelMode','auto')
-            
+            ylim(ha(j),[min(min(OutliersRemovedNormS2P2Plot)) max(max(OutliersRemovedNormS2P2Plot))]);
             color = 'k';
             controlidx= [];
             dataidx = [];
@@ -297,12 +297,13 @@ for i = 1:numel(genotypes) %for each genotype
             hold on
             scatter(lombStats2PlotControlsF,lombStats2PlotControlsAlpha,'k')
             scatter(lombStats2PlotResultsF,lombStats2PlotResultsAlpha,'b')
-            
+            hold off
             set(gca,'YTickLabelMode','auto')
             set(gca,'XTickLabelMode','auto')
             set(gca,'YDir','reverse')
             set(gca,'YSCale','log')
             xlim(gca,[0 0.1])
+            ylim(ha(j),[min([lombStats2PlotControlsAlpha;lombStats2PlotResultsAlpha]) max([lombStats2PlotControlsAlpha;lombStats2PlotResultsAlpha])]);
         end
         
     end
@@ -380,7 +381,7 @@ axis off
 
 
 %save figure
-set(gcf,'OuterPosition',[500 1000 900 1150]);
+set(gcf,'Position',[500 1000 900 1150]);
 %set(gcf,'PaperPositionMode','auto');
 %position = get(gcf,'Position');
 %set(gcf,'PaperPosition',[0.5,0,position(3:4)]);
