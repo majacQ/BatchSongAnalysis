@@ -34,6 +34,15 @@ noise = findnoise(ssf,3,80,1000);
 StDev = noise.sigma * NumStd;
 
 pulseData = Pulses;
+
+%check here for pulses that start or stop too close to end (within ±
+%Extend) -- delete these pulses
+
+KeepIdx = find(pulseData.w0 > MaxExtend & pulseData.w1 < (numel(Data.d) - MaxExtend)); %idx of pulses that are < length of song - MaxExtend
+pulseData.w0 = pulseData.w0(KeepIdx);
+pulseData.wc = pulseData.wc(KeepIdx);
+pulseData.w1 = pulseData.w1(KeepIdx);
+
 AllStarts = pulseData.w0;
 NumClips = numel(AllStarts);
 
