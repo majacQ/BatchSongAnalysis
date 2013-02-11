@@ -1,6 +1,6 @@
 function PlotAnalysis(folders,genotypes,control_folders,control_genotypes)
 %Plot results both with and without outliers, save separate files
-PlotResults(folders,genotypes,control_folders,control_genotypes,1)
+PlotResults(folders,genotypes,control_folders,control_genotypes,1);
 %PlotResults(folders,genotypes,control_folders,control_genotypes,0)
 
 
@@ -294,6 +294,7 @@ for i = 1:numel(genotypes) %for each genotype
             lombStats2PlotResultsAlpha = cell2mat(lombStats2PlotResultsAlpha');
             
             axes(ha(j))
+            title(Trait)
             hold on
             scatter(lombStats2PlotControlsF,lombStats2PlotControlsAlpha,'k')
             scatter(lombStats2PlotResultsF,lombStats2PlotResultsAlpha,'b')
@@ -369,7 +370,7 @@ text(0,.4,['Controls = ' conGenos], 'interpreter', 'none')
 
 %collect control folders
 conFolders = [];
-for a= 1:numel(folders)
+for a= 1:numel(control_folders)
     folder = regexp(control_folders{a},'/','split');
     conFolders= [conFolders folder(end-1)];
 end

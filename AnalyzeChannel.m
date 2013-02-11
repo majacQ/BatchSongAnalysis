@@ -12,8 +12,8 @@ load(filename,'-mat');
 % Variables
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 
-load('./pulse_model_melanogaster.mat');
-OldPulseModel = cpm;
+% load('./pulse_model_melanogaster.mat');
+OldPulseModel = Pulses.OldPulseModel;
 pauseThreshold = 0.5e4; %minimum pause between bouts
 if nargin < 2
     LLR_threshold = 50;
@@ -437,11 +437,11 @@ Stats2Plot.CorrIpi=CorrIpi;
 Stats2Plot.lombStats=lombStats;
 Stats2Plot.PulseModels = PulseModels;
 
-Stats2Plot.timestamp = timestamp;
 
 Stats2Plot.SineFFTBouts.time = time;
 Stats2Plot.SineFFTBouts.freq = freq;
-
+Stats2Plot.timestamp = timestamp;
+Stats2Plot.filename = filename;
 
 
 AllStats.PulseTrainsPerMin = PulseTrainsPerMin;
