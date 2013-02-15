@@ -12,8 +12,8 @@ load(filename,'-mat');
 % Variables
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% load('./pulse_model_melanogaster.mat');
-OldPulseModel = Pulses.OldPulseModel;
+load('./pulse_model_melanogaster.mat');
+OldPulseModel = cpm;
 pauseThreshold = 0.5e4; %minimum pause between bouts
 if nargin < 2
     LLR_threshold = 50;
@@ -238,7 +238,7 @@ end
 %mode pulse carrier freq - DONE
 
 try
-    ModePulseMFFT = kernel_mode(pulseMFFT.MaxFFT,min(pulseMFFT.MaxFFT):.1:max(pulseMFFT.MaxFFT));
+    ModePulseMFFT = kernel_mode(pulseMFFT.freqAll,min(pulseMFFT.freqAll):.1:max(pulseMFFT.freqAll));
 catch
     ModePulseMFFT = NaN;
 end
@@ -437,11 +437,11 @@ Stats2Plot.CorrIpi=CorrIpi;
 Stats2Plot.lombStats=lombStats;
 Stats2Plot.PulseModels = PulseModels;
 
+Stats2Plot.timestamp = timestamp;
 
 Stats2Plot.SineFFTBouts.time = time;
 Stats2Plot.SineFFTBouts.freq = freq;
-Stats2Plot.timestamp = timestamp;
-Stats2Plot.filename = filename;
+
 
 
 AllStats.PulseTrainsPerMin = PulseTrainsPerMin;

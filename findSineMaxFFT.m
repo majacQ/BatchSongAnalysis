@@ -16,11 +16,11 @@ parfor i = 1:NumSine
             wnd = round(Fs*sec);
             z = resample(ym,Fs,10000);
             [Sn,F] = spectrogram(z,wnd,[],nfft,Fs);
-            a = find(F>100 & F<300);
+            a = find(F>50 & F<300);
             freq2 = F(a);
             voltage = abs(Sn(a,:));
             
-            [~,I] = max(voltage); %I = index of max of the signal between 80-250Hz
+            [~,I] = max(voltage); %I = index of max of the signal between 50-300Hz
             maxFFTFreq{i} = freq2(I); %the frequency with this index
             maxFFTFreqTime{i} = boutStart;
             
@@ -28,11 +28,11 @@ parfor i = 1:NumSine
             wnd = round(0.1*Fs);
             z = resample(ym,Fs,10000);
             [Sn,F] = spectrogram(z,wnd,[],nfft,Fs);
-            a = find(F>100 & F<300);
+            a = find(F>50 & F<300);
             freq2 = F(a);
             voltage = abs(Sn(a,:));
             
-            [~,I] = max(voltage); %I = index of max of the signal between 80-250Hz
+            [~,I] = max(voltage); %I = index of max of the signal between 50-300Hz
             maxFFTFreq{i} = freq2(I); %the frequency with this index
             maxFFTFreqTime{i} = boutStart:500:boutStart+(500*length(I))-1;
         end
