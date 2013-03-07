@@ -13,7 +13,7 @@ load(filename,'-mat');
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 
 load('./pulse_model_melanogaster.mat');
-OldPulseModel = cpm;
+OldPulseModel = Pulses.OldPulseModel;
 pauseThreshold = 0.5e4; %minimum pause between bouts
 if nargin < 2
     LLR_threshold = 50;
@@ -134,7 +134,11 @@ end
 if numel(sines.start) > 0
     sineMFFT = findSineMaxFFT(sines,Data.fs);
 else
-    sineMFFT = NaN;
+    sineMFFT.freq = {};
+    sineMFFT.time = {};
+    sineMFFT.freqAll = [];
+    sineMFFT.timeAll = [];
+
 end
 
 %Total recording, sine, pulse, bouts
@@ -238,35 +242,56 @@ end
 %mode pulse carrier freq - DONE
 
 try
-    ModePulseMFFT = kernel_mode(pulseMFFT.freqAll,min(pulseMFFT.freqAll):.1:max(pulseMFFT.freqAll));
+    if numel(pulseMFFT.freqAll) > 100
+        ModePulseMFFT = kernel_mode(pulseMFFT.freqAll,min(pulseMFFT.freqAll):.1:max(pulseMFFT.freqAll));
+    else
+        ModePulseMFFT = NaN;
+    end
 catch
     ModePulseMFFT = NaN;
 end
 
-%mode sine carrier freq - DONE
+%mode sine carrier freq if have at least 100 samples - DONE
 try
-    ModeSineMFFT = kernel_mode(sineMFFT.freqAll,min(sineMFFT.freqAll):.1:max(sineMFFT.freqAll));
+    if numel(sineMFFT.freqAll) > 100
+        ModeSineMFFT = kernel_mode(sineMFFT.freqAll,min(sineMFFT.freqAll):.1:max(sineMFFT.freqAll));
+    else
+        ModeSineMFFT = NaN;
+    end
 catch
     ModeSineMFFT = NaN;
 end
 
+
 %mode Peak2PeakIPI - DONE
 try
-    ModePeak2PeakIPI = kernel_mode(culled_ipi.d,min(culled_ipi.d):1:max(culled_ipi.d))./10;
+    if numel(culled_ipi.d) > 100
+        ModePeak2PeakIPI = kernel_mode(culled_ipi.d,min(culled_ipi.d):1:max(culled_ipi.d))./10;
+    else
+        ModePeak2PeakIPI = NaN;
+    end
 catch
     ModePeak2PeakIPI = NaN;
 end
 
 %mode Peak2PeakIPI - DONE
 try
+    if numel(culled_End2Peakipi.d) > 100
     ModeEnd2PeakIPI = kernel_mode(culled_End2Peakipi.d,min(culled_End2Peakipi.d):1:max(culled_End2Peakipi.d))./10;
+    else
+        ModeEnd2PeakIPI  = NaN;
+    end
 catch
     ModeEnd2PeakIPI = NaN;
 end
 
 %mode Peak2PeakIPI - DONE
 try
+    if numel(culled_End2Startipi.d) > 100
     ModeEnd2StartIPI = kernel_mode(culled_End2Startipi.d,min(culled_End2Startipi.d):1:max(culled_End2Startipi.d))./10;
+    else
+        ModeEnd2StartIPI = NaN;
+    end
 catch
     ModeEnd2StartIPI = NaN;
 end
@@ -280,8 +305,13 @@ SkewnessIPI = skewness(culled_ipi.d,0);
 %DONE
 
 try
+    if numel(Pulses.Lik_pulse2.LLR_fh) > 100
     LLRfh = Pulses.Lik_pulse2.LLR_fh(Pulses.Lik_pulse2.LLR_fh > 0);
     MedianLLRfh = median(LLRfh);
+    else
+        MedianLLRfh  = NaN;
+    end
+        
 catch
     MedianLLRfh = NaN;
 end
@@ -289,8 +319,12 @@ end
 %mode of amplitude of pulses - DONE
 
 try
+    if numel(pulses.x) > 100
     PulseAmplitudes = cellfun(@(y) sqrt(mean(y.^2)),pulses.x);
     MedianPulseAmplitudes = median(PulseAmplitudes);
+    else
+        MedianPulseAmplitudes = NaN;
+    end
 catch
     MedianPulseAmplitudes = NaN;
 end
@@ -298,8 +332,12 @@ end
 %mode of amplitude of sine - DONE
 
 try
+    if numel(sineMFFT.freqAll) > 100
     SineAmplitudes = cellfun(@(y) sqrt(mean(y.^2)),sines.clips);
     MedianSineAmplitudes = kernel_mode(SineAmplitudes,min(SineAmplitudes):.0001:max(SineAmplitudes));
+    else
+        MedianSineAmplitudes = NaN;
+    end
 catch
     MedianSineAmplitudes = NaN;
 end
