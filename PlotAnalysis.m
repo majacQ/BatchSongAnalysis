@@ -258,6 +258,14 @@ for i = 1:numel(genotypes) %for each genotype
                 catch
                 end
             end
+            x = OutliersRemovedNormS2P2Plot(:,end-1);
+            y = OutliersRemovedNormS2P2Plot(:,end);
+            scatter(x,y,color)
+            try
+                brob = robustfit(x,y);
+                plot(x,brob(1)+brob(2)*x,'k')
+            catch
+            end
             hold off
             set(gca,'YTickLabelMode','auto')
             set(gca,'XTickLabelMode','auto')
