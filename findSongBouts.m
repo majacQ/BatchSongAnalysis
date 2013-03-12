@@ -35,8 +35,13 @@ end
 PauseDelta = Pauses.PauseDelta;
 PauseTime = Pauses.Time;
 shortPausesIdx = find(PauseDelta < threshold);
-maskStart = PauseTime(shortPausesIdx)+1;
-maskStop = maskStart+PauseDelta(shortPausesIdx);
+if numel(shortPausesIdx) > 0
+    maskStart = PauseTime(shortPausesIdx)+1;
+    maskStop = maskStart+PauseDelta(shortPausesIdx);
+else
+    maskStart = [];
+    maskStop = [];
+end
 for i = 1:numel(maskStart)
     song(maskStart(i):maskStop(i)) =1;
 end

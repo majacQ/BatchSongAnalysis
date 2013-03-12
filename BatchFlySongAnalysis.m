@@ -24,7 +24,7 @@ function BatchFlySongAnalysis(daq_file,genotypes,recording_channels,control_geno
 [poolavail,isOpen] = check_open_pool;
 
 if nargin < 5
-    LLR_threshold = 50;
+    LLR_threshold = 0;
 end
 
 num_genotypes = numel(genotypes);

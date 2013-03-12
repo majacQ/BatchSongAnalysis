@@ -304,7 +304,9 @@ for i = 1:numel(genotypes) %for each genotype
             set(gca,'YDir','reverse')
             set(gca,'YSCale','log')
             xlim(gca,[0 0.1])
-            ylim(ha(j),[min([lombStats2PlotControlsAlpha;lombStats2PlotResultsAlpha]) max([lombStats2PlotControlsAlpha;lombStats2PlotResultsAlpha])]);
+            if min([lombStats2PlotControlsAlpha;lombStats2PlotResultsAlpha]) < max([lombStats2PlotControlsAlpha;lombStats2PlotResultsAlpha])
+                ylim(ha(j),[min([lombStats2PlotControlsAlpha;lombStats2PlotResultsAlpha]) max([lombStats2PlotControlsAlpha;lombStats2PlotResultsAlpha])]);
+            end
         end
         
     end
