@@ -21,17 +21,15 @@ function BatchFlySongAnalysis(daq_file,genotypes,recording_channels,control_geno
 % LLR_threshold = can be set by user. Usually want to run twice, once at 50
 % and once at 0
 
-[poolavail,isOpen] = check_open_pool;
-
 if nargin < 5
     LLR_threshold = 0;
 end
 
 num_genotypes = numel(genotypes);
 
-%check to confirm # genotypes == number recording_channels
-if num_genotypes ~= numel(recording_channels)
-    error('myApp:argChk','Analysis stopped.\nThe number of genotypes must equal the number of recording channels.');
+%check to confirm # genotypes == number grouops of recording_channels
+if num_genotypes ~= numel(recording_channels);
+    error('myApp:argChk','Analysis stopped.\nThe number of genotypes must equal the number of recording channel groups.');
 end
 
 %check if _out file exists
@@ -46,6 +44,8 @@ if sum(ismember(genotypes,control_genotypes)) == 0
     error('myApp:argChk','Analysis stopped.\nControl genotype does not match possible genotypes.');
 end
 
+[poolavail,isOpen] = check_open_pool;
+
 %establish Results folder 
 timestamp = datestr(now,'yyyymmddHHMMSS');
 results_folder = [daq_root '_Results_LLR=' num2str(LLR_threshold) '_' timestamp];
@@ -53,47 +53,33 @@ mkdir([path2daq '/' results_folder]);
 
 %get _out folder info
 dir_list = dir(folder);
-file_num = numel(dir_list);
 
 %make full list of all recording channels and genotypes
-all_recording_channels = [];
-all_genotypes = {};
 for i = 1:num_genotypes
     start = recording_channels{i}(1);
     finish = recording_channels{i}(2);
-    all_recording_channels = [all_recording_channels start:finish];
-    all_genotypes(start:finish) = cellstr(genotypes{i});
-end
-
-
-parfor y = 1:file_num
-%for y = 1:file_num
+    genotype = cellstr(genotypes{i});
     
-    file = dir_list(y).name; %pull out the file name
-    [~,root,ext] = fileparts(file);
-    path_file = [folder file];
-    if strcmp(ext,'.mat');
+    %send each analysis job to separate cluster processor    
+    parfor y = start:finish
+    %for y = start:finish
+        file = ['PS_' daq_root '_ch' num2str(y) '.mat'];
+        [nodir,root,ext] = fileparts(file);
+        path_file = [folder file];
         fprintf(['Analyzing file ' root '\n'])
-        %find channel number
-        %e.g. root = PS_20110315090424_ch12
-        channel_pos = strfind(root, '_ch');
-        channel = root(channel_pos + 3:end); 
-        %find genotype
-        genotype = all_genotypes{str2num(channel)};
-
-        %send each analysis job to separate cluster node
-        [Analysis_Results,~] = AnalyzeChannel(path_file,LLR_threshold);
         
-        if sum(ismember(control_genotypes,genotype)) == 0
-            result_path = [path2daq '/' results_folder '/' root '_' genotype '_' timestamp '.mat'];
-        else
-            result_path = [path2daq '/' results_folder '/' root '_' genotype '_control_' timestamp '.mat'];            
+        if exist(path_file, 'file') == 2
+            [Analysis_Results,~] = AnalyzeChannel(path_file,LLR_threshold);
+            
+            if sum(ismember(control_genotypes,genotype)) == 0
+                result_path = strcat(path2daq, '/', results_folder, '/', root, '_', genotype, '_', timestamp, '.mat');
+            else
+                result_path = strcat(path2daq, '/', results_folder, '/', root, '_', genotype, '_control_', timestamp, '.mat');
+            end
+            my_save(result_path{1},Analysis_Results);
         end
-%            save(result_path,'Analysis_Results','-mat');%save all variables in original file
-        my_save(result_path,Analysis_Results);
     end
 end
-
 check_close_pool(poolavail,isOpen);
 
 %send each file in control folder for analysis on separate cluster node
