@@ -53,6 +53,13 @@ function errorbarjitter(data,h,varargin)
 %
 %AVE_MARKER_SIZE: Size of markers used for average points
 %
+%DELETE_OUTLIERS: Delete outliers using Grubb's test, as implemented by
+%Brett Shoelson (www.mathworks.com/matlabcentral/fileexchange/3961-deleteoutliers)
+%Provide 2 element array containing alpha and rep: e.g. [.05 1]
+%
+%PLOT_SDS: Plot horizontal lines corresponding to the # of standard
+%deviations of the data in the first column. e.g. 2
+%
 %SAVE_DIRECT: Save figure directly to specified format without plotting in
 %Matlab window. To use, specify output filename, which must include
 %legitimate suffix for Matlab saveas command. e.g. 'plot.png'. NOTE:
@@ -83,7 +90,9 @@ function errorbarjitter(data,h,varargin)
 % 2012/12/10    Added ability to define average and data marker sizes
 % 2012/12/12    Plot with tight X axis
 %               Added ability to pass axis handle
-                
+% 2013/05/10    Added ability to delete outliers and to plot horizontal SDs
+% 2013/05/14    Bug fix fpr plotting horizontal SDs
+
 
 
 % Check number of inputs
@@ -92,6 +101,7 @@ if nargin < 1
 end
 
 if nargin < 2
+    
     h = gcf;
 end
 
@@ -118,6 +128,8 @@ defaultData_marker = 'o';
 defaultData_marker_size = 50;
 defaultAve_marker = 'o';
 defaultAve_marker_size = 50;
+defaultDelete_Outliers = 'no';
+defaultPlot_SDs = 'no';
 
 std = zeros(n_data,n_categories);
 std(:) = NaN;
@@ -148,6 +160,8 @@ addOptional(p,'data_marker',defaultData_marker);
 addOptional(p,'data_marker_size',defaultData_marker_size);
 addOptional(p,'ave_marker',defaultAve_marker);
 addOptional(p,'ave_marker_size',defaultAve_marker_size);
+addOptional(p,'delete_outliers',defaultDelete_Outliers);
+addOptional(p,'plot_SDs',defaultPlot_SDs);
 
 parse(p,data,varargin{:});
 
@@ -169,6 +183,8 @@ data_marker = p.Results.data_marker;
 data_marker_size = p.Results.data_marker_size;
 ave_marker = p.Results.ave_marker;
 ave_marker_size = p.Results.ave_marker_size;
+delete_outliers = p.Results.delete_outliers;
+plot_SDs = p.Results.plot_SDs;
 
 %set some other variables
 
@@ -192,24 +208,24 @@ else
     set(h,'Visible','on');
 end
 
+if ~strcmp(delete_outliers,'no')
+    for i = 1:n_categories
+        d(:,i) = deleteoutliers(d(:,i),delete_outliers(1),delete_outliers(2));
+    end
+end
+
 if strcmp(mean_or_med,'mean') == 1
     mean_d = nanmean(d);
 elseif strcmp(mean_or_med,'median') == 1
     mean_d = nanmedian(d);
 end
+mean_original_d = mean_d;
+std_original_d = nanstd(d);
 
 %make figure
 
 %figure(h)
 hold on
-
-
-if strcmp(mean_or_med,'mean') == 1
-    mean_d = nanmean(d);
-elseif strcmp(mean_or_med,'median') == 1
-    mean_d = nanmedian(d);
-end
-
 
 %add option to sort data by mean
 %there must be an easier way to rearrange an array by a property of columns
@@ -248,6 +264,14 @@ end
 
 
 
+%plot SD lines for control data (column 1)
+
+if ~strcmp(plot_SDs,'no')
+    SD = std_original_d(:,1);
+    M = mean_original_d(:,1);
+    line([0 n_categories+1],[M+plot_SDs*SD M+plot_SDs*SD],'LineWidth',0.5,'Color',[0.5 0.5 0.5])
+    line([0 n_categories+1],[M-plot_SDs*SD M-plot_SDs*SD],'LineWidth',0.5,'Color',[0.5 0.5 0.5])
+end
 
 %for column in data
 %plot (mean ±SD)
@@ -306,6 +330,7 @@ for i = 1:n_categories
     end
 end
 
+
 %plot raw data with jitter in x axis to left of each
 if n_categories >1
     x = repmat(x,n_data,1);
@@ -338,6 +363,8 @@ if ~isempty(std)
         end
     end
 end
+
+
 
 set(gca,'XTick',[1:1:n_categories],'TickDir','Out','Xlim',[0 n_categories + 1])
 

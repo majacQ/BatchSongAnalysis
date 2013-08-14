@@ -16,7 +16,7 @@ function BatchFlySongAnalysis(daq_file,genotypes,recording_channels,control_geno
 %
 % control_genotype: genotype name of control genotype. Must be one or more 
 % of the names specified in "genotypes". If multiple, enter cell array
-% *e.g. {'wild_type' 'other_wild_type'}
+% *e.g. {'wild_type' 'other_wild_type'}. If no controls, use {}.
 %
 % LLR_threshold = can be set by user. Usually want to run twice, once at 50
 % and once at 0
@@ -35,15 +35,16 @@ end
 %check if _out file exists
 [path2daq,daq_root,~] = fileparts(daq_file);
 folder = [path2daq '/' daq_root '_out/'];
+hyg_file = [path2daq '/' daq_root '.hyg'];
 if ~isdir(folder)
     error('myApp:argChk','Analysis stopped.\nFolder with segmented song does not exist.');
 end
 
 %check if control_genotype is one of genotypes
-if sum(ismember(genotypes,control_genotypes)) == 0
-    error('myApp:argChk','Analysis stopped.\nControl genotype does not match possible genotypes.');
-end
-
+% if sum(ismember(genotypes,control_genotypes)) == 0
+%     error('myApp:argChk','Analysis stopped.\nControl genotype does not match possible genotypes.');
+% end
+% 
 [poolavail,isOpen] = check_open_pool;
 
 %establish Results folder 
@@ -69,7 +70,7 @@ for i = 1:num_genotypes
         fprintf(['Analyzing file ' root '\n'])
         
         if exist(path_file, 'file') == 2
-            [Analysis_Results,~] = AnalyzeChannel(path_file,LLR_threshold);
+            [Analysis_Results,~] = AnalyzeChannel(path_file,LLR_threshold,hyg_file);
             
             if sum(ismember(control_genotypes,genotype)) == 0
                 result_path = strcat(path2daq, '/', results_folder, '/', root, '_', genotype, '_', timestamp, '.mat');

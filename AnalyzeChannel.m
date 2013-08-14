@@ -1,4 +1,4 @@
-function [Stats2Plot, AllStats] = AnalyzeChannel(filename,LLR_threshold)
+function [Stats2Plot, AllStats] = AnalyzeChannel(filename,LLR_threshold,hyg_file)
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -124,6 +124,11 @@ catch
 %    pulseMFFT.freqAll = [];
 %    pulseMFFT.timeAll = [];
 end
+
+%get average temp and humidity
+th = load(hyg_file,'-ascii');
+temphyg = mean(th(:,2:3));
+
 
 %%%%%%%%%%%%%
 %%%%%%%%%%%%%
@@ -296,6 +301,19 @@ catch
     ModeEnd2StartIPI = NaN;
 end
 
+%mode Peak2PeakIPI controlled for temperature
+%resid = ipi- m * temp - intercept
+%m and intercept come from modeling control data
+%m = -0.9701
+%intercept = 64.533
+
+if ~isnan(ModePeak2PeakIPI)
+    residIPI = ModePeak2PeakIPI + (0.9701 * temphyg(1)) - 64.533;
+else
+    residIPI  = NaN;
+end
+
+
 
 %skewness of IPI - DONE
 
@@ -460,7 +478,7 @@ Stats2Plot.ModePeak2PeakIPI = ModePeak2PeakIPI;
 Stats2Plot.ModeEnd2PeakIPI = ModeEnd2PeakIPI;
 Stats2Plot.ModeEnd2StartIPI = ModeEnd2StartIPI;
 %Stats2Plot.SkewnessIPI = SkewnessIPI;
-
+%Stats2Plot.residIPI = residIPI;
 Stats2Plot.MedianPulseAmplitudes = MedianPulseAmplitudes;
 
 Stats2Plot.MedianSineAmplitudes = MedianSineAmplitudes;
@@ -502,6 +520,7 @@ AllStats.ModeSineMFFT = ModeSineMFFT;
 AllStats.ModePeak2PeakIPI = ModePeak2PeakIPI;
 AllStats.ModeEnd2PeakIPI = ModeEnd2PeakIPI;
 AllStats.ModeEnd2StartIPI = ModeEnd2StartIPI;
+AllStats.residIPI = residIPI;
 AllStats.SkewnessIPI = SkewnessIPI;
 AllStats.MedianLLRfh = MedianLLRfh;
 AllStats.MedianPulseAmplitudes = MedianPulseAmplitudes;
@@ -519,6 +538,7 @@ AllStats.PulseModels = PulseModels;
 AllStats.SineFFTBouts.time = time;
 AllStats.SineFFTBouts.freq = freq;
 
+AllStats.temphyg = temphyg;
 AllStats.filename = filename;
 AllStats.timestamp = timestamp;
 
