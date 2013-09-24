@@ -12,11 +12,16 @@ load(filename,'-mat');
 % Variables
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 
+numEventCutoff = 100;
+
 load('./pulse_model_melanogaster.mat');
 OldPulseModel = Pulses.OldPulseModel;
 pauseThreshold = 0.5e4; %minimum pause between bouts
 if nargin < 2
     LLR_threshold = 50;
+end
+if nargin < 3
+    hyg_file = [];
 end
 minIPI = 100;
 maxIPI = 3000;
@@ -62,6 +67,7 @@ catch
     culled_ipi.t = [];
 end
 
+%calc end to peak IPIS
 %get pulse envelopes
 [PulseStart,PulseCenter,PulseStop] = PulseEnvelope(Data, pulses);
 try
@@ -73,6 +79,8 @@ catch
 %     culled_End2Peakipi.t = [];
 end
 
+
+%calc end to start IPIs
 try
     End2Startipi.d = PulseStart(2:end) - PulseStop(1:end-1);
     
@@ -82,6 +90,15 @@ try
 catch
     culled_End2Startipi.d = [];
 %     culled_End2Startipi.t = [];
+end
+
+%calc IPI histogram
+
+try
+    [ipiDist.f,ipiDist.xi]=ksdensity(culled_ipi.d,min(culled_ipi.d):1:max(culled_ipi.d));
+catch
+    ipiDist.f = [];
+    ipiDist.xi = [];
 end
 
 
@@ -126,9 +143,12 @@ catch
 end
 
 %get average temp and humidity
-th = load(hyg_file,'-ascii');
-temphyg = mean(th(:,2:3));
-
+if ~isempty(hyg_file)
+    th = load(hyg_file,'-ascii');
+    temphyg = mean(th(:,2:3));
+else
+    temphyg = NaN;
+end
 
 %%%%%%%%%%%%%
 %%%%%%%%%%%%%
@@ -153,9 +173,9 @@ if numel(sines.start) > 0
     SineTrainLengths = (sines.stop - sines.start);
     SineTotal = sum(SineTrainLengths);
 else
-    SineTrainNum = NaN;
-    SineTrainLengths = NaN;
-    SineTotal = NaN;
+    SineTrainNum = 0;
+    SineTrainLengths = 0;
+    SineTotal = 0;
 end
 
 if numel(IpiTrains.t) > 0
@@ -163,9 +183,9 @@ if numel(IpiTrains.t) > 0
     PulseTrainLengths = cellfun(@(x) x(end)-x(1), IpiTrains.t);
     PulseTotal = sum(PulseTrainLengths);
 else
-    PulseTrainNum = NaN;
-    PulseTrainLengths = NaN;
-    PulseTotal = NaN;
+    PulseTrainNum = 0;
+    PulseTrainLengths = 0;
+    PulseTotal = 0;
 end
 
 %Transition probabilities
@@ -182,13 +202,25 @@ NumTransitions = NumSine2PulseTransitions + NumPulse2SineTransitions;
 
 PulseTrainsPerMin = PulseTrainNum  * 60/(recording_duration / Data.fs);
 
+%pulses / min - DONE
+
+PulsesPerMin = PulseTotal * 60/(recording_duration / Data.fs);
+
 %# sine trains / min - DONE
 
 SineTrainsPerMin = SineTrainNum * 60 /(recording_duration / Data.fs);
 
+%sine / min - DONE
+
+SinePerMin = SineTotal * 60/(recording_duration / Data.fs);
+
 %total % bouts / min - DONE
 
 BoutsPerMin = numel(Bouts.Start) * 60 / (recording_duration / Data.fs);
+
+%total song / min 
+
+SongPerMin = (PulseTotal + SineTotal) * 60/(recording_duration / Data.fs);
 
 % Sine/Pulse within bout Transition Probabilities - DONE
 
@@ -204,7 +236,7 @@ if NumTransitions > 0
 %     NulltoSongTransProb = [TransProb(1,2) TransProb(1,3)];
 %     SinetoPulseTransProb = [TransProb(2,3) TransProb(3,2)];
 else
-     NullToSine = NaN;
+    NullToSine = NaN;
     NullToPulse = NaN;
     SineToNull = NaN;
     PulseToNull = NaN;
@@ -247,7 +279,7 @@ end
 %mode pulse carrier freq - DONE
 
 try
-    if numel(pulseMFFT.freqAll) > 100
+    if numel(pulseMFFT.freqAll) > numEventCutoff
         ModePulseMFFT = kernel_mode(pulseMFFT.freqAll,min(pulseMFFT.freqAll):.1:max(pulseMFFT.freqAll));
     else
         ModePulseMFFT = NaN;
@@ -258,7 +290,7 @@ end
 
 %mode sine carrier freq if have at least 100 samples - DONE
 try
-    if numel(sineMFFT.freqAll) > 100
+    if numel(sineMFFT.freqAll) > numEventCutoff
         ModeSineMFFT = kernel_mode(sineMFFT.freqAll,min(sineMFFT.freqAll):.1:max(sineMFFT.freqAll));
     else
         ModeSineMFFT = NaN;
@@ -270,7 +302,7 @@ end
 
 %mode Peak2PeakIPI - DONE
 try
-    if numel(culled_ipi.d) > 100
+    if numel(culled_ipi.d) > numEventCutoff
         ModePeak2PeakIPI = kernel_mode(culled_ipi.d,min(culled_ipi.d):1:max(culled_ipi.d))./10;
     else
         ModePeak2PeakIPI = NaN;
@@ -281,7 +313,7 @@ end
 
 %mode Peak2PeakIPI - DONE
 try
-    if numel(culled_End2Peakipi.d) > 100
+    if numel(culled_End2Peakipi.d) > numEventCutoff
     ModeEnd2PeakIPI = kernel_mode(culled_End2Peakipi.d,min(culled_End2Peakipi.d):1:max(culled_End2Peakipi.d))./10;
     else
         ModeEnd2PeakIPI  = NaN;
@@ -292,7 +324,7 @@ end
 
 %mode Peak2PeakIPI - DONE
 try
-    if numel(culled_End2Startipi.d) > 100
+    if numel(culled_End2Startipi.d) > numEventCutoff
     ModeEnd2StartIPI = kernel_mode(culled_End2Startipi.d,min(culled_End2Startipi.d):1:max(culled_End2Startipi.d))./10;
     else
         ModeEnd2StartIPI = NaN;
@@ -307,7 +339,7 @@ end
 %m = -0.9701
 %intercept = 64.533
 
-if ~isnan(ModePeak2PeakIPI)
+if ~isnan(ModePeak2PeakIPI) && ~isnan(temphyg)
     residIPI = ModePeak2PeakIPI + (0.9701 * temphyg(1)) - 64.533;
 else
     residIPI  = NaN;
@@ -323,7 +355,7 @@ SkewnessIPI = skewness(culled_ipi.d,0);
 %DONE
 
 try
-    if numel(Pulses.Lik_pulse2.LLR_fh) > 100
+    if numel(Pulses.Lik_pulse2.LLR_fh) > numEventCutoff
     LLRfh = Pulses.Lik_pulse2.LLR_fh(Pulses.Lik_pulse2.LLR_fh > 0);
     MedianLLRfh = median(LLRfh);
     else
@@ -337,7 +369,7 @@ end
 %mode of amplitude of pulses - DONE
 
 try
-    if numel(pulses.x) > 100
+    if numel(pulses.x) > numEventCutoff
     PulseAmplitudes = cellfun(@(y) sqrt(mean(y.^2)),pulses.x);
     MedianPulseAmplitudes = median(PulseAmplitudes);
     else
@@ -350,7 +382,7 @@ end
 %mode of amplitude of sine - DONE
 
 try
-    if numel(sineMFFT.freqAll) > 100
+    if numel(sineMFFT.freqAll) > numEventCutoff
     SineAmplitudes = cellfun(@(y) sqrt(mean(y.^2)),sines.clips);
     MedianSineAmplitudes = kernel_mode(SineAmplitudes,min(SineAmplitudes):.0001:max(SineAmplitudes));
     else
@@ -453,8 +485,11 @@ timestamp = datestr(now,'yyyymmddHHMMSS');
 %Stats2Plot.culled_ipi = culled_ipi;
 
 Stats2Plot.PulseTrainsPerMin = PulseTrainsPerMin;
+Stats2Plot.PulsesPerMin = PulsesPerMin;
 Stats2Plot.SineTrainsPerMin = SineTrainsPerMin;
+Stats2Plot.SinePerMin = SinePerMin;
 Stats2Plot.BoutsPerMin = BoutsPerMin;
+Stats2Plot.SongPerMin = SongPerMin;
 Stats2Plot.NullToSine = NullToSine;
 Stats2Plot.NullToPulse = NullToPulse;
 
@@ -477,19 +512,20 @@ Stats2Plot.MedianLLRfh = MedianLLRfh;
 Stats2Plot.ModePeak2PeakIPI = ModePeak2PeakIPI;
 Stats2Plot.ModeEnd2PeakIPI = ModeEnd2PeakIPI;
 Stats2Plot.ModeEnd2StartIPI = ModeEnd2StartIPI;
+Stats2Plot.ipiDist = ipiDist;
 %Stats2Plot.SkewnessIPI = SkewnessIPI;
 %Stats2Plot.residIPI = residIPI;
 Stats2Plot.MedianPulseAmplitudes = MedianPulseAmplitudes;
 
 Stats2Plot.MedianSineAmplitudes = MedianSineAmplitudes;
 Stats2Plot.CorrSineFreqDynamics=CorrSineFreqDynamics;
-Stats2Plot.CorrBoutDuration=CorrBoutDuration;
-Stats2Plot.CorrPulseTrainDuration=CorrPulseTrainDuration;
-Stats2Plot.CorrSineTrainDuration=CorrSineTrainDuration;
-
-Stats2Plot.CorrSineFreq=CorrSineFreq;
-Stats2Plot.CorrPulseFreq=CorrPulseFreq;
-Stats2Plot.CorrIpi=CorrIpi;
+% Stats2Plot.CorrBoutDuration=CorrBoutDuration;
+% Stats2Plot.CorrPulseTrainDuration=CorrPulseTrainDuration;
+% Stats2Plot.CorrSineTrainDuration=CorrSineTrainDuration;
+% 
+% Stats2Plot.CorrSineFreq=CorrSineFreq;
+% Stats2Plot.CorrPulseFreq=CorrPulseFreq;
+% Stats2Plot.CorrIpi=CorrIpi;
 Stats2Plot.lombStats=lombStats;
 Stats2Plot.PulseModels = PulseModels;
 
@@ -501,8 +537,11 @@ Stats2Plot.SineFFTBouts.freq = freq;
 
 
 AllStats.PulseTrainsPerMin = PulseTrainsPerMin;
+AllStats.PulsesPerMin = PulsesPerMin;
 AllStats.SineTrainsPerMin = SineTrainsPerMin;
+AllStats.SinesPerMin = SinePerMin;
 AllStats.BoutsPerMin = BoutsPerMin;
+AllStats.SongPerMin = SongPerMin;
 %AllStats.TransProb = TransProb;
 AllStats.NullToSine = NullToSine;%transition probabilities
 AllStats.NullToPulse = NullToPulse;
@@ -520,6 +559,7 @@ AllStats.ModeSineMFFT = ModeSineMFFT;
 AllStats.ModePeak2PeakIPI = ModePeak2PeakIPI;
 AllStats.ModeEnd2PeakIPI = ModeEnd2PeakIPI;
 AllStats.ModeEnd2StartIPI = ModeEnd2StartIPI;
+AllStats.ipiDist = ipiDist;
 AllStats.residIPI = residIPI;
 AllStats.SkewnessIPI = SkewnessIPI;
 AllStats.MedianLLRfh = MedianLLRfh;

@@ -1,6 +1,6 @@
 function PlotAnalysis(folders,genotypes,control_folders,control_genotypes)
 %Plot results both with and without outliers, save separate files
-PlotResults(folders,genotypes,control_folders,control_genotypes,1);
+PlotResults(folders,genotypes,control_folders,control_genotypes,0);
 %PlotResults(folders,genotypes,control_folders,control_genotypes,0)
 
 
@@ -105,6 +105,8 @@ for i  = 1:numel(genotypes)
     results.(varname) = Results;
 end
 
+densitycolors = {'blue','red','green','magenta','cyan'};
+
 
 %make arrays for plotting
 for i = 1:numel(genotypes) %for each genotype
@@ -115,13 +117,13 @@ for i = 1:numel(genotypes) %for each genotype
     names = fieldnames(results.(geno_varname));
     clf;
     ha = tight_subplot(8,4,.05,.06,[.05 .03]);
-    for j = 1:29 %all results except models
+    for j = 1:27 %all results except models
         Results2Plot = NaN(maxSampleSize,numControls+1);
         Trait = names{j};
         controlOutliers= [];
         dataOutliers = [];
         color = 'k';
-        if ~strcmp(Trait,'Sine2PulseNorm') && ~strcmp(Trait,'lombStats')%&& ~strcmp(Trait,'NulltoSongTransProb')&& ~strcmp(Trait,'SinetoPulseTransProb')
+        if ~strcmp(Trait,'Sine2PulseNorm') && ~strcmp(Trait,'ipiDist') && ~strcmp(Trait,'lombStats')
             
             %collect control data
             for k = 1:numControls
@@ -221,12 +223,12 @@ for i = 1:numel(genotypes) %for each genotype
             dataidx = [];
             
             
-            
-            
             %determine whether results are sign diff from controls
             %make arrays for aoctool
             x = reshape(OutliersRemovedNormS2P2Plot(:,1:2:end-1),[],1);
             y = reshape(OutliersRemovedNormS2P2Plot(:,2:2:end),[],1);
+            x = x(isfinite(x));
+            y = y(isfinite(y));
             group = ones(size(x,1),1);
             group(1:numControls*maxSampleSize) = 0;
             [~,T,h] = aoctool(x,y,group,[],[],[],[],'off');
@@ -273,6 +275,44 @@ for i = 1:numel(genotypes) %for each genotype
             color = 'k';
             controlidx= [];
             dataidx = [];
+            
+            
+            
+        elseif strcmp(Trait,'ipiDist')%plot kernel density estimates for IPIs
+            %ipiDist2Plot = NaN(maxSampleSize,2*(numControls+1));
+            %collect control data
+            
+            axes(ha(j))
+            title(Trait)
+            hold on
+    
+            %for each control genotype
+            for k = 1:numControls
+                
+                %for each sample in control genotype
+                control_varname = genvarname(control_genotypes{k});
+                
+                %collect ipiDist data and plot in black
+                for m = 1:numel(controls.(control_varname))
+                    plot(controls.(control_varname)(m).ipiDist.xi,controls.(control_varname)(m).ipiDist.f,'Color',[.5 .5 .5])
+                    alpha(.5)
+                end
+            end
+            axis tight
+
+            %for each genotype
+            %choose a new color with each new genotype
+            if i < 6
+                densitycolor = densitycolors{i};
+            end
+            %for each sample in genotype
+            for m = 1:numel(results.(geno_varname))
+                %collect ipiDist data and plot in new color
+                plot(results.(geno_varname)(m).ipiDist.xi,results.(geno_varname)(m).ipiDist.f,'Color',densitycolor)
+                alpha(.5)
+            end
+            xlim([200 700])
+            
         elseif strcmp(Trait,'lombStats')
             %collect control data
             lombStats2PlotControlsF = {};
@@ -360,6 +400,7 @@ hold off
 axis(ha(j+1),'tight');
 axis([ha(j+1) ha(j+2)],'off');
 
+
 %print useful information in final panel
 axes(ha(j+2))
 text(0,1,['Genotype = ' char(genotypes{i})], 'interpreter', 'none')
@@ -387,9 +428,10 @@ end
 text(0,.1,['Control Folders = ' conFolders], 'interpreter', 'none')
 
 %clear last axis
-axes(ha(j+3))
-axis off
-
+for z = j+3:32
+    axes(ha(z))
+    axis off
+end
 
 %save figure
 set(gcf,'Position',[500 1000 900 1150]);
