@@ -13,10 +13,11 @@ peaks = regionalmax(P);
 %get f,alpha,Peaks for peaks < desired alpha
 fPeaks = f(peaks);
 alphaPeaks = alpha(peaks);
+PPeaks = P(peaks);
 
 signF = fPeaks(alphaPeaks < alphaThresh);
 signAlpha = alphaPeaks(alphaPeaks <alphaThresh);
-signPeaks = P(alphaPeaks < alphaThresh);
+signPeaks = PPeaks(alphaPeaks < alphaThresh);
 
 lombStats.F = signF;
 lombStats.Alpha = signAlpha;

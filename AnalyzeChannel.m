@@ -12,7 +12,7 @@ load(filename,'-mat');
 % Variables
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 
-numEventCutoff = 100;
+numEventCutoff = 50;
 
 load('./pulse_model_melanogaster.mat');
 OldPulseModel = Pulses.OldPulseModel;
@@ -140,6 +140,14 @@ catch
    pulseMFFT.MaxFFT = [];
 %    pulseMFFT.freqAll = [];
 %    pulseMFFT.timeAll = [];
+end
+
+%calculate pulse model Max FFT
+
+try
+    PulseModelMFFT = findPulseModelMaxFFT(Pulses.pulse_model2.newfhM,Data.fs);
+catch
+    PulseModelMFFT = [];
 end
 
 %get average temp and humidity
@@ -505,7 +513,8 @@ Stats2Plot.MedianPulseTrainLength = MedianPulseTrainLength;
 Stats2Plot.MedianSineTrainLength = MedianSineTrainLength;
 Stats2Plot.Sine2Pulse = Sine2Pulse;
 Stats2Plot.Sine2PulseNorm = Sine2PulseNorm;
-Stats2Plot.ModePulseMFFT = ModePulseMFFT;
+%Stats2Plot.ModePulseMFFT = ModePulseMFFT;
+Stats2Plot.PulseModelMFFT = PulseModelMFFT;
 Stats2Plot.ModeSineMFFT = ModeSineMFFT;
 
 Stats2Plot.MedianLLRfh = MedianLLRfh;
@@ -555,6 +564,7 @@ AllStats.MedianSineTrainLength = MedianSineTrainLength;
 AllStats.Sine2Pulse = Sine2Pulse;
 AllStats.Sine2PulseNorm = Sine2PulseNorm;
 AllStats.ModePulseMFFT = ModePulseMFFT;
+AllStats.PulseModelMFFT = PulseModelMFFT;
 AllStats.ModeSineMFFT = ModeSineMFFT;
 AllStats.ModePeak2PeakIPI = ModePeak2PeakIPI;
 AllStats.ModeEnd2PeakIPI = ModeEnd2PeakIPI;

@@ -1,6 +1,6 @@
 function errorbarjitter(data,h,varargin)
 
-%SYNTAX
+% SYNTAX
 %
 %   errorbarjitter(data)
 %   errorbarjitter(data,param1,val1,param2,val2,...)
@@ -9,66 +9,70 @@ function errorbarjitter(data,h,varargin)
 %   errorbarjitter(data,'barends','yes','colors',color_array)
 %
 %
-%Plots mean (or median)±SD plus jitter plot of raw data
-%Columns are categories, rows are individual samples.
+% Plots mean (or median)±SD plus jitter plot of raw data
+% Columns are categories, rows are individual samples.
 %
-%PARAMETERS (all optional)
+% PARAMETERS (all optional)
 %
-%OFFSET: plots with user defined offset of mean±SD and jittered raw data
+% OFFSET: plots with user defined offset of mean±SD and jittered raw data
 %
-%AVERAGE: plot with either mean ('mean') or median ('median')
+% AVERAGE: plot with either mean ('mean') or median ('median') or none
+%   ('none')
 %
-%SORT: plot with either sorted data ('sort') or user entered 
-%order ('nosort'). Default is nosort.
+% SORT: plot with either sorted data ('sort') or user entered 
+%   order ('nosort'). Default is nosort.
 %
-%COLHEADERS: plot with user defined column headers. 
-%It is a bad idea to sort without providing colheaders,
-%since it may not be easy to track the source of the data. 
+% COLHEADERS: plot with user defined column headers. 
+%   It is a bad idea to sort without providing colheaders,
+%   since it may not be easy to track the source of the data. 
 %
-%FACTOR: plot with user defined factor for scaling the jitter
+% FACTOR: plot with user defined factor for scaling the jitter
 %
-%LEFT_OR_RIGHT: when LEFT_OR_RIGHT = 'left', plot with mean±SD line 
-%on left, when = 'right', plot with bar on right (default)
+% LEFT_OR_RIGHT: when LEFT_OR_RIGHT = 'left', plot with mean±SD line 
+%   on left, when = 'right', plot with bar on right (default)
 %
-%BARENDS: when barends = 'yes', plot with capped ends of SD
-%bars, when = 'no' (default), plot without barends
+% BARENDS: when barends = 'yes', plot with capped ends of SD
+%   bars, when = 'no' (default), plot without barends
 %
-%STD: Provide a separate array containing the standard deviations
-%(or any other estimates of distribution) for each datum in d, and an error
-%bar equal to ± these deviations will be plotted on each datum
+% STD: Provide a separate array containing the standard deviations
+%   (or any other estimates of distribution) for each datum in d, and an error
+%   bar equal to ± these deviations will be plotted on each datum
 %
-%COLORS: Plot data with user defined colors, using standard Matlab nomenclature, 
-%specified as cell array equal in length to the number of data columns.
+% COLORS: Plot data with user defined colors, using standard Matlab nomenclature, 
+%   specified as cell array equal in length to the number of data columns.
 %
-%COLOR_OPTS: A three element logical vector that indicates whether to 
-%color the raw data (position 1), the average point (position 2), and/or 
-%the bar representing the standard deviation estimate (position 3). e.g. [0 1 1] 
-%would color the average point and the variance line
+% COLOR_OPTS: A three element logical vector that indicates whether to 
+%   color the raw data (position 1), the average point (position 2), and/or 
+%   the bar representing the standard deviation estimate (position 3). e.g. [0 1 1] 
+%   would color the average point and the variance line
 %
-%DATA_MARKER: Use Matlab Marker specifier for data points ('o' default)
+% COLOR_MAP: Provide a matrix equal in dimension to the data matrix to plot
+%   each datum a color from the scale of the current colormap
 %
-%DATA_MARKER_SIZE: Size of markers used for data points
+% DATA_MARKER: Use Matlab Marker specifier for data points ('o' default)
 %
-%AVE_MARKER: Use Matlab Marker specifier for average points ('o' default)
+% DATA_MARKER_SIZE: Size of markers used for data points
 %
-%AVE_MARKER_SIZE: Size of markers used for average points
+% AVE_MARKER: Use Matlab Marker specifier for average points ('o' default)
 %
-%DELETE_OUTLIERS: Delete outliers using Grubb's test, as implemented by
-%Brett Shoelson (www.mathworks.com/matlabcentral/fileexchange/3961-deleteoutliers)
-%Provide 2 element array containing alpha and rep: e.g. [.05 1]
+% AVE_MARKER_SIZE: Size of markers used for average points
 %
-%PLOT_SDS: Plot horizontal lines corresponding to the # of standard
-%deviations of the data in the first column. e.g. 2
+% DELETE_OUTLIERS: Delete outliers using Grubb's test, as implemented by
+%   Brett Shoelson (www.mathworks.com/matlabcentral/fileexchange/3961-deleteoutliers)
+%   Provide 2 element array containing alpha and rep: e.g. [.05 1]
 %
-%SAVE_DIRECT: Save figure directly to specified format without plotting in
-%Matlab window. To use, specify output filename, which must include
-%legitimate suffix for Matlab saveas command. e.g. 'plot.png'. NOTE:
-%If you save in Matlab .fig format (i.e. 'plot.fig'), the figure is saved in 
-%'invisible' mode. You can open the plot in visible mode with
-%openfig('plot.fig','new','visible') or, after opening, set(gcf,'Visible','on')
+% PLOT_SDS: Plot horizontal lines corresponding to the # of standard
+%   deviations of the data in the first column. e.g. 2
 %
-%ACKNOWLEDGEMENT: This function depends on jitter.m, written by Richie
-%Cotton 2006/03/21.
+% SAVE_DIRECT: Save figure directly to specified format without plotting in
+%   Matlab window. To use, specify output filename, which must include
+%   legitimate suffix for Matlab saveas command. e.g. 'plot.png'. NOTE:
+%   If you save in Matlab .fig format (i.e. 'plot.fig'), the figure is saved in 
+%   'invisible' mode. You can open the plot in visible mode with
+%   openfig('plot.fig','new','visible') or, after opening, set(gcf,'Visible','on')
+%
+% ACKNOWLEDGEMENT: This function depends on jitter.m, written by Richie
+%   Cotton 2006/03/21.
 % 
 %
 %
@@ -92,6 +96,9 @@ function errorbarjitter(data,h,varargin)
 %               Added ability to pass axis handle
 % 2013/05/10    Added ability to delete outliers and to plot horizontal SDs
 % 2013/05/14    Bug fix fpr plotting horizontal SDs
+% 2013/12/20    Added option to specify matrix of values for datapoint
+%               colors & option to plot without average±SD
+% 2014/1/8      Small bug fix of marker size for plots with colormap
 
 
 
@@ -124,6 +131,7 @@ defaultLeft_or_right = 'right';
 defaultBarends = 'no';
 defaultXsep = 1;
 defaultColor_Opts = [1 0 0];
+defaultColor_Map = 'no';
 defaultData_marker = 'o';
 defaultData_marker_size = 50;
 defaultAve_marker = 'o';
@@ -138,6 +146,7 @@ defaultStd =std;
 colors = cell(1,n_categories);
 colors(:) = {'black'};
 defaultColors = colors;
+cmap=colormap;
 
 defaultSave_direct = [];
 
@@ -156,6 +165,7 @@ addOptional(p,'std',defaultStd);
 addOptional(p,'colors',defaultColors);
 addOptional(p,'save_direct',defaultSave_direct);
 addOptional(p,'color_opts',defaultColor_Opts);
+addOptional(p,'color_map',defaultColor_Map);
 addOptional(p,'data_marker',defaultData_marker);
 addOptional(p,'data_marker_size',defaultData_marker_size);
 addOptional(p,'ave_marker',defaultAve_marker);
@@ -168,7 +178,7 @@ parse(p,data,varargin{:});
 %redistribute parsed variables to original variable names
 
 offset = p.Results.offset;
-mean_or_med = p.Results.average;
+average = p.Results.average;
 sort_or_nosort = p.Results.sort;
 colheaders = p.Results.colheaders;
 factor = p.Results.factor;
@@ -179,6 +189,7 @@ std = p.Results.std;
 colors = p.Results.colors;
 save_direct = p.Results.save_direct;
 color_opts = p.Results.color_opts;
+color_map = p.Results.color_map;
 data_marker = p.Results.data_marker;
 data_marker_size = p.Results.data_marker_size;
 ave_marker = p.Results.ave_marker;
@@ -214,13 +225,19 @@ if ~strcmp(delete_outliers,'no')
     end
 end
 
-if strcmp(mean_or_med,'mean') == 1
-    mean_d = nanmean(d);
-elseif strcmp(mean_or_med,'median') == 1
-    mean_d = nanmedian(d);
+if ~strcmp(average,'none')
+    if strcmp(average,'mean') == 1
+        mean_d = nanmean(d);
+    elseif strcmp(average,'median') == 1
+        mean_d = nanmedian(d);
+    end
+    mean_original_d = mean_d;
+    std_original_d = nanstd(d);
 end
-mean_original_d = mean_d;
-std_original_d = nanstd(d);
+
+if strcmp(average,'none')
+    offset = 0;
+end
 
 %make figure
 
@@ -253,9 +270,9 @@ if strcmp(sort_or_nosort,'sort') == 1
         colheaders = sorted_colheaders;
     end
     %recalculate mean for newly sorted data
-    if strcmp(mean_or_med,'mean') == 1
+    if strcmp(average,'mean') == 1
         mean_d = nanmean(d);
-    elseif strcmp(mean_or_med,'median') == 1
+    elseif strcmp(average,'median') == 1
         mean_d = nanmedian(d);
     end
     
@@ -283,53 +300,54 @@ x = x*Xsep;
 %put column indices in each column
     
 %plot mean and error bar
-if strcmp(barends,'no') == 1
-    if color_opts(2) == 0
-        if ave_marker == 'o'
-            scatter(x+offset,mean_d,ave_marker_size,ave_marker,'k','filled');
-        else
-            scatter(x+offset,mean_d,ave_marker_size,ave_marker,'k');
-        end
-    else
-        for i = 1:n_categories
+if ~strcmp(average,'none')
+    if strcmp(barends,'no') == 1
+        if color_opts(2) == 0
             if ave_marker == 'o'
-                scatter(x(i)+offset,mean_d(i),ave_marker_size,ave_marker,'filled',colors{i});
+                scatter(x+offset,mean_d,ave_marker_size,ave_marker,'k','filled');
             else
-                scatter(x(i)+offset,mean_d(i),ave_marker_size,ave_marker,colors{i});
+                scatter(x+offset,mean_d,ave_marker_size,ave_marker,'k');
+            end
+        else
+            for i = 1:n_categories
+                if ave_marker == 'o'
+                    scatter(x(i)+offset,mean_d(i),ave_marker_size,ave_marker,'filled',colors{i});
+                else
+                    scatter(x(i)+offset,mean_d(i),ave_marker_size,ave_marker,colors{i});
+                end
+            end
+        end
+    else %draw with barends
+        if color_opts(2) == 0
+            if color_opts(3) == 0
+                errorbar(mean_d,e,ave_marker,'MarkerFaceColor','k','MarkerEdgeColor','k','XData',x+offset);
+            else
+                for i = 1:n_categories
+                    errorbar(mean_d(i),e(i),ave_marker,'MarkerFaceColor','k','MarkerEdgeColor','k','Color',colors{i},'XData',x(i)+offset);
+                end
+            end
+        else
+            if color_opts(3) == 1
+                for i = 1:n_categories
+                    errorbar(mean_d(i),e(i),ave_marker,'MarkerFaceColor',colors{i},'Color',colors{i},'XData',x(i)+offset);
+                end
+            else
+                for i = 1:n_categories
+                    errorbar(mean_d(i),e(i),ave_marker,'MarkerFaceColor',colors{i},'MarkerEdgeColor',colors{i},'Color','k','XData',x(i)+offset);
+                end
             end
         end
     end
-else %draw with barends
-    if color_opts(2) == 0
+    
+    %plot error lines
+    for i = 1:n_categories
         if color_opts(3) == 0
-            errorbar(mean_d,e,ave_marker,'MarkerFaceColor','k','MarkerEdgeColor','k','XData',x+offset);
+            line([x(i)+offset x(i)+offset],[mean_d(i)-e(i) mean_d(i)+e(i)],'Color','k','LineWidth',.5);
         else
-            for i = 1:n_categories
-                errorbar(mean_d(i),e(i),ave_marker,'MarkerFaceColor','k','MarkerEdgeColor','k','Color',colors{i},'XData',x(i)+offset);
-            end
-        end
-    else
-        if color_opts(3) == 1
-            for i = 1:n_categories
-                errorbar(mean_d(i),e(i),ave_marker,'MarkerFaceColor',colors{i},'Color',colors{i},'XData',x(i)+offset);
-            end
-        else
-            for i = 1:n_categories
-                errorbar(mean_d(i),e(i),ave_marker,'MarkerFaceColor',colors{i},'MarkerEdgeColor',colors{i},'Color','k','XData',x(i)+offset);
-            end
+            line([x(i)+offset x(i)+offset],[mean_d(i)-e(i) mean_d(i)+e(i)],'Color',colors{i},'LineWidth',.5);
         end
     end
 end
-
-%plot error lines
-for i = 1:n_categories
-    if color_opts(3) == 0
-        line([x(i)+offset x(i)+offset],[mean_d(i)-e(i) mean_d(i)+e(i)],'Color','k','LineWidth',.5);
-    else
-        line([x(i)+offset x(i)+offset],[mean_d(i)-e(i) mean_d(i)+e(i)],'Color',colors{i},'LineWidth',.5);
-    end
-end
-
 
 %plot raw data with jitter in x axis to left of each
 if n_categories >1
@@ -344,21 +362,34 @@ end
 x(isnan(d)) = NaN;
 
 for i = 1:n_categories
-    if color_opts(1) == 1
-        scatter(x(:,i)-offset,d(:,i),data_marker_size,data_marker,'MarkerEdgeColor',colors{i})
+    if ismatrix(color_map)
+        scatter(x(:,i)-offset,d(:,i),data_marker_size,color_map(:,i),'marker',data_marker)
     else
-        scatter(x(:,i)-offset,d(:,i),data_marker_size,data_marker,'MarkerEdgeColor','k')
+        if color_opts(1) == 1
+            scatter(x(:,i)-offset,d(:,i),data_marker_size,data_marker,'MarkerEdgeColor',colors{i})
+        else
+            scatter(x(:,i)-offset,d(:,i),data_marker_size,data_marker,'MarkerEdgeColor','k')
+        end
     end
+    
 end
 
 %plot error lines for each datum
 if ~isempty(std)
     for i = 1:n_categories
         for j = 1:n_data
-            if color_opts(1) == 1
-                line([x(j,i)-offset x(j,i)-offset],[d(j,i)-std(j,i) d(j,i)+std(j,i)],'Color',colors{i},'LineWidth',.5)
+            if ismatrix(color_map)
+                if ~isnan(color_map(j,i))
+                    coloridx = ceil(max(color_map(j,i) * 64)); %get colormap value of datum
+                    line([x(j,i)-offset x(j,i)-offset],[d(j,i)-std(j,i) d(j,i)+std(j,i)],'Color',cmap(coloridx,:),'LineWidth',.5)
+                end
             else
-                line([x(j,i)-offset x(j,i)-offset],[d(j,i)-std(j,i) d(j,i)+std(j,i)],'Color','k','LineWidth',.5)
+                
+                if color_opts(1) == 1
+                    line([x(j,i)-offset x(j,i)-offset],[d(j,i)-std(j,i) d(j,i)+std(j,i)],'Color',colors{i},'LineWidth',.5)
+                else
+                    line([x(j,i)-offset x(j,i)-offset],[d(j,i)-std(j,i) d(j,i)+std(j,i)],'Color','k','LineWidth',.5)
+                end
             end
         end
     end
