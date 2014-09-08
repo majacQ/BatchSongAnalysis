@@ -153,13 +153,14 @@ end
 %get average temp and humidity
 if ~isempty(hyg_file)
     th = load(hyg_file,'-ascii');
-    temphyg = mean(th(:,2:3));
+    temphyg = mean(th(:,[3 8]));
 else
     temphyg = NaN;
 end
 
 %%%%%%%%%%%%%
 %%%%%%%%%%%%%
+%% 
 %%%%%%%%%%%%%
 
 %calculate sine Max FFT
@@ -347,7 +348,7 @@ end
 %m = -0.9701
 %intercept = 64.533
 
-if ~isnan(ModePeak2PeakIPI) && ~isnan(temphyg)
+if ~isnan(ModePeak2PeakIPI) && ~isnan(temphyg(1))
     residIPI = ModePeak2PeakIPI + (0.9701 * temphyg(1)) - 64.533;
 else
     residIPI  = NaN;
