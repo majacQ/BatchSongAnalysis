@@ -12,8 +12,7 @@ function BatchFlySongAnalysis(daq_file,genotypes,recording_channels,control_geno
 % genotypes: cell array of genotype names (e.g. {'strain1' 'wild_type'})
 %
 % recording_channels: cell array containing numeric arrays that indicate
-% how to group genotypes (e.g. {[1 10] [11 18]}). If empty (i.e. {}), then
-% all channels (or all files in folder) are same genotype.
+% how to group genotypes (e.g. {[1 10] [11 18]})
 %
 % control_genotype: genotype name of control genotype. Must be one or more 
 % of the names specified in "genotypes". If multiple, enter cell array
@@ -26,11 +25,10 @@ if nargin < 5
     LLR_threshold = 0;
 end
 
-
 num_genotypes = numel(genotypes);
 
 %check to confirm # genotypes == number grouops of recording_channels
-if num_genotypes ~= numel(recording_channels) && ~isempty(recording_channels);
+if num_genotypes ~= numel(recording_channels);
     error('myApp:argChk','Analysis stopped.\nThe number of genotypes must equal the number of recording channel groups.');
 end
 
@@ -57,42 +55,28 @@ mkdir([path2daq '/' results_folder]);
 %get _out folder info
 dir_list = dir(folder);
 
-if ~isempty(recording_channels)
-    %make full list of all recording channels and genotypes
-    for i = 1:num_genotypes
-        start = recording_channels{i}(1);
-        finish = recording_channels{i}(2);
-        genotype = cellstr(genotypes{i});
+%make full list of all recording channels and genotypes
+for i = 1:num_genotypes
+    start = recording_channels{i}(1);
+    finish = recording_channels{i}(2);
+    genotype = cellstr(genotypes{i});
+    
+    %send each analysis job to separate cluster processor    
+    parfor y = start:finish
+    %for y = start:finish
+        file = ['PS_' daq_root '_ch' num2str(y) '.mat'];
+        [nodir,root,ext] = fileparts(file);
+        path_file = [folder file];
+        fprintf(['Analyzing file ' root '\n'])
         
-        %send each analysis job to separate cluster processor
-        parfor y = start:finish
-            %for y = start:finish
-            file = ['PS_' daq_root '_ch' num2str(y) '.mat'];
-            [~,root,ext] = fileparts(file);
-            path_file = [folder file];
-            fprintf(['Analyzing file ' root '\n'])
+        if exist(path_file, 'file') == 2
+            [Analysis_Results,~] = AnalyzeChannel(path_file,LLR_threshold,hyg_file);
             
-            if exist(path_file, 'file') == 2
-                [Analysis_Results,~] = AnalyzeChannel(path_file,LLR_threshold,hyg_file);
-                
-                if sum(ismember(control_genotypes,genotype)) == 0
-                    result_path = strcat(path2daq, '/', results_folder, '/', root, '_', genotype, '_', timestamp, '.mat');
-                else
-                    result_path = strcat(path2daq, '/', results_folder, '/', root, '_', genotype, '_control_', timestamp, '.mat');
-                end
-                my_save(result_path{1},Analysis_Results);
+            if sum(ismember(control_genotypes,genotype)) == 0
+                result_path = strcat(path2daq, '/', results_folder, '/', root, '_', genotype, '_', timestamp, '.mat');
+            else
+                result_path = strcat(path2daq, '/', results_folder, '/', root, '_', genotype, '_control_', timestamp, '.mat');
             end
-        end
-    end
-else %only one genotype in folder and folder may contain many recordings
-    genotype = cellstr(genotypes{1});
-    for i = 1:numel(dir_list)
-        [~,root,ext] = fileparts(dir_list(i).name);
-        if strcmp(ext,'.mat')
-            fprintf(['Analyzing file ' dir_list(i).name '\n'])
-            path_file = [daq_file '_out' '/' dir_list(i).name];
-            [Analysis_Results,~] = AnalyzeChannel(path_file,LLR_threshold);%,hyg_file);
-            result_path = strcat(path2daq, '/', results_folder, '/', root, '_', genotype, '_', timestamp, '.mat');
             my_save(result_path{1},Analysis_Results);
         end
     end

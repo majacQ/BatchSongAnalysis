@@ -75,7 +75,7 @@ end
 %clear out empty cell elements and zeros in arrays
 PauseType(cellfun('isempty',PauseType))=[];
 PauseDelta(PauseDelta ==0) = [];
-PauseTime(PauseDelta ==0) = [];
+PauseTime(PauseTime ==0) = [];
 
 %get start time of pause
 sineSineDelta = PauseDelta(strcmp('sine-sine',PauseType));

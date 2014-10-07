@@ -1,6 +1,15 @@
 function [poolavail,isOpen] = check_open_pool
+%[poolavail,isOpen] = check_open_pool
 
-num_procs=feature('numCores');
+%if(isdeployed)
+%  num_procs=8;
+%  poolavail=0;
+%  isOpen=0;
+%  return;
+%else
+  num_procs=getenv('NUMBER_OF_PROCESSORS');
+%  num_procs=4;
+%end
 
 poolavail = exist('matlabpool','file');
 if poolavail~=0

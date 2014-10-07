@@ -1,10 +1,11 @@
-function Analysis_Results = AnalyzeChannelCopy(filename)
+function [Stats2Plot, AllStats] = AnalyzeChannel(filename,LLR_threshold)
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 % Load mat file
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 addpath('SplitVec')
+addpath('chronux')
 load(filename,'-mat');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -12,11 +13,11 @@ load(filename,'-mat');
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 
 load('./pulse_model_melanogaster.mat');
-Pulses.Lik_Pulse2.LLR_fh = culled_pulseInfo2;
-Sines.LengthCull = winnowed_sine;
-OldPulseModel = cpm;
+%OldPulseModel = Pulses.OldPulseModel;
 pauseThreshold = 0.5e4; %minimum pause between bouts
-LLR_threshold = 50;
+if nargin < 2
+    LLR_threshold = 50;
+end
 minIPI = 100;
 maxIPI = 3000;
 try
@@ -41,7 +42,7 @@ end
 % Preliminary manipulations
 %%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%calc IPIS
+%calc peak to peak IPIS
 try
     p = pulses.wc;
     p_shift_one = circshift(p,[0 -1]);
@@ -60,6 +61,29 @@ catch
     culled_ipi.d = [];
     culled_ipi.t = [];
 end
+
+%get pulse envelopes
+[PulseStart,PulseCenter,PulseStop] = PulseEnvelope(Data, pulses);
+try
+    End2Peakipi.d = PulseCenter(2:end) - PulseStop(1:end-1);
+    culled_End2Peakipi.d = End2Peakipi.d(End2Peakipi.d > minIPI & End2Peakipi.d < maxIPI);
+%     culled_End2Peakipi.t = End2Peakipi.t(End2Peakipi.d > minIPI & End2Peakipi.d < maxIPI);
+catch
+    culled_End2Peakipi.d = [];
+%     culled_End2Peakipi.t = [];
+end
+
+try
+    End2Startipi.d = PulseStart(2:end) - PulseStop(1:end-1);
+    
+    
+    culled_End2Startipi.d = End2Startipi.d(End2Startipi.d > 0 & End2Startipi.d < maxIPI);
+%     culled_End2Startipi.t = End2Startipi.t(End2Startipi.d > minIPI & End2Startipi.d < maxIPI);
+catch
+    culled_End2Startipi.d = [];
+%     culled_End2Startipi.t = [];
+end
+
 
 if numel(culled_ipi.d) > 1
     %find IPI trains
@@ -162,11 +186,23 @@ BoutsPerMin = numel(Bouts.Start) * 60 / (recording_duration / Data.fs);
 if NumTransitions > 0
     %Sine2PulseTransProb = NumSine2PulseTransitions / NumTransitions;
     TransProb = TranProb(Data,sines,pulses);
-    NulltoSongTransProb = [TransProb(1,2) TransProb(1,3)];
-    SinetoPulseTransProb = [TransProb(2,3) TransProb(3,2)];
+    NullToSine = TransProb(1,2);
+    NullToPulse = TransProb(1,3);
+    SineToNull = TransProb(2,1);
+    PulseToNull = TransProb(3,1);
+    SineToPulse = TransProb(2,3);
+    PulseToSine = TransProb(3,2);
+%     NulltoSongTransProb = [TransProb(1,2) TransProb(1,3)];
+%     SinetoPulseTransProb = [TransProb(2,3) TransProb(3,2)];
 else
-    NulltoSongTransProb = [NaN NaN];
-    SinetoPulseTransProb = [NaN NaN];
+     NullToSine = NaN;
+    NullToPulse = NaN;
+    SineToNull = NaN;
+    PulseToNull = NaN;
+    SineToPulse = NaN;
+    PulseToSine = NaN;
+%     NulltoSongTransProb = [NaN NaN];
+%     SinetoPulseTransProb = [NaN NaN];
 end
 
 %mode pulse train length (sec) - DONE
@@ -195,6 +231,10 @@ else
     Sine2PulseNorm = [NaN NaN];
 end
 
+%ratio sine to pulse per bout ---- TO DO -----
+
+
+
 %mode pulse carrier freq - DONE
 
 try
@@ -210,12 +250,27 @@ catch
     ModeSineMFFT = NaN;
 end
 
-%mode IPI - DONE
+%mode Peak2PeakIPI - DONE
 try
-    ModeIPI = kernel_mode(culled_ipi.d,min(culled_ipi.d):1:max(culled_ipi.d))./10;
+    ModePeak2PeakIPI = kernel_mode(culled_ipi.d,min(culled_ipi.d):1:max(culled_ipi.d))./10;
 catch
-    ModeIPI = NaN;
+    ModePeak2PeakIPI = NaN;
 end
+
+%mode Peak2PeakIPI - DONE
+try
+    ModeEnd2PeakIPI = kernel_mode(culled_End2Peakipi.d,min(culled_End2Peakipi.d):1:max(culled_End2Peakipi.d))./10;
+catch
+    ModeEnd2PeakIPI = NaN;
+end
+
+%mode Peak2PeakIPI - DONE
+try
+    ModeEnd2StartIPI = kernel_mode(culled_End2Startipi.d,min(culled_End2Startipi.d):1:max(culled_End2Startipi.d))./10;
+catch
+    ModeEnd2StartIPI = NaN;
+end
+
 
 %skewness of IPI - DONE
 
@@ -324,41 +379,108 @@ catch
     CorrIpi = NaN;
 end
 
+%Lomb-Scargle of IPIs
+try
+    [lombStats] = calcLomb(culled_ipi,Data.fs,0.01);
+catch
+    lombStats.F = [];
+    lombStats.Alpha = [];
+    lombStats.Peaks = [];
+end
+
+
 %timestamp
 
 timestamp = datestr(now,'yyyymmddHHMMSS');
 
-%Analysis_Results.ipi = ipi;
-%Analysis_Results.culled_ipi = culled_ipi;
+%Stats2Plot.ipi = ipi;
+%Stats2Plot.culled_ipi = culled_ipi;
 
-Analysis_Results.PulseTrainsPerMin = PulseTrainsPerMin;
-Analysis_Results.SineTrainsPerMin = SineTrainsPerMin;
-Analysis_Results.BoutsPerMin = BoutsPerMin;
-Analysis_Results.NulltoSongTransProb = NulltoSongTransProb;
-Analysis_Results.SinetoPulseTransProb = SinetoPulseTransProb;%and pulse2sine
-%Analysis_Results.Pulse2SineTransProb = Pulse2SineTransProb;
-Analysis_Results.MedianPulseTrainLength = MedianPulseTrainLength;
-Analysis_Results.MedianSineTrainLength = MedianSineTrainLength;
-Analysis_Results.Sine2Pulse = Sine2Pulse;
-Analysis_Results.Sine2PulseNorm = Sine2PulseNorm;
-Analysis_Results.ModePulseMFFT = ModePulseMFFT;
-Analysis_Results.ModeSineMFFT = ModeSineMFFT;
-Analysis_Results.ModeIPI = ModeIPI;
-%Analysis_Results.SkewnessIPI = SkewnessIPI;
-Analysis_Results.MedianLLRfh = MedianLLRfh;
-Analysis_Results.MedianPulseAmplitudes = MedianPulseAmplitudes;
-Analysis_Results.MedianSineAmplitudes = MedianSineAmplitudes;
-Analysis_Results.CorrSineFreqDynamics=CorrSineFreqDynamics;
-Analysis_Results.CorrBoutDuration=CorrBoutDuration;
-Analysis_Results.CorrPulseTrainDuration=CorrPulseTrainDuration;
-Analysis_Results.CorrSineTrainDuration=CorrSineTrainDuration;
-Analysis_Results.CorrSineFreq=CorrSineFreq;
-Analysis_Results.CorrPulseFreq=CorrPulseFreq;
-Analysis_Results.CorrIpi=CorrIpi;
+Stats2Plot.PulseTrainsPerMin = PulseTrainsPerMin;
+Stats2Plot.SineTrainsPerMin = SineTrainsPerMin;
+Stats2Plot.BoutsPerMin = BoutsPerMin;
+Stats2Plot.NullToSine = NullToSine;
+Stats2Plot.NullToPulse = NullToPulse;
 
-Analysis_Results.PulseModels = PulseModels;
+Stats2Plot.SineToNull = SineToNull;
+Stats2Plot.PulseToNull = PulseToNull;
+Stats2Plot.SineToPulse = SineToPulse;
+Stats2Plot.PulseToSine = PulseToSine;
+% Stats2Plot.NulltoSongTransProb = NulltoSongTransProb;
+% Stats2Plot.SinetoPulseTransProb = SinetoPulseTransProb;%and pulse2sine
+%Stats2Plot.Pulse2SineTransProb = Pulse2SineTransProb;
+Stats2Plot.MedianPulseTrainLength = MedianPulseTrainLength;
 
-Analysis_Results.timestamp = timestamp;
+Stats2Plot.MedianSineTrainLength = MedianSineTrainLength;
+Stats2Plot.Sine2Pulse = Sine2Pulse;
+Stats2Plot.Sine2PulseNorm = Sine2PulseNorm;
+Stats2Plot.ModePulseMFFT = ModePulseMFFT;
+Stats2Plot.ModeSineMFFT = ModeSineMFFT;
 
-Analysis_Results.SineFFTBouts.time = time;
-Analysis_Results.SineFFTBouts.freq = freq;
+Stats2Plot.MedianLLRfh = MedianLLRfh;
+Stats2Plot.ModePeak2PeakIPI = ModePeak2PeakIPI;
+Stats2Plot.ModeEnd2PeakIPI = ModeEnd2PeakIPI;
+Stats2Plot.ModeEnd2StartIPI = ModeEnd2StartIPI;
+%Stats2Plot.SkewnessIPI = SkewnessIPI;
+
+Stats2Plot.MedianPulseAmplitudes = MedianPulseAmplitudes;
+
+Stats2Plot.MedianSineAmplitudes = MedianSineAmplitudes;
+Stats2Plot.CorrSineFreqDynamics=CorrSineFreqDynamics;
+Stats2Plot.CorrBoutDuration=CorrBoutDuration;
+Stats2Plot.CorrPulseTrainDuration=CorrPulseTrainDuration;
+Stats2Plot.CorrSineTrainDuration=CorrSineTrainDuration;
+
+Stats2Plot.CorrSineFreq=CorrSineFreq;
+Stats2Plot.CorrPulseFreq=CorrPulseFreq;
+Stats2Plot.CorrIpi=CorrIpi;
+Stats2Plot.lombStats=lombStats;
+Stats2Plot.PulseModels = PulseModels;
+
+Stats2Plot.timestamp = timestamp;
+
+Stats2Plot.SineFFTBouts.time = time;
+Stats2Plot.SineFFTBouts.freq = freq;
+
+
+
+AllStats.PulseTrainsPerMin = PulseTrainsPerMin;
+AllStats.SineTrainsPerMin = SineTrainsPerMin;
+AllStats.BoutsPerMin = BoutsPerMin;
+%AllStats.TransProb = TransProb;
+AllStats.NullToSine = NullToSine;%transition probabilities
+AllStats.NullToPulse = NullToPulse;
+AllStats.SineToNull = SineToNull;
+AllStats.PulseToNull = PulseToNull;
+AllStats.SineToPulse = SineToPulse;
+AllStats.PulseToSine = PulseToSine;
+
+AllStats.MedianPulseTrainLength = MedianPulseTrainLength;
+AllStats.MedianSineTrainLength = MedianSineTrainLength;
+AllStats.Sine2Pulse = Sine2Pulse;
+AllStats.Sine2PulseNorm = Sine2PulseNorm;
+AllStats.ModePulseMFFT = ModePulseMFFT;
+AllStats.ModeSineMFFT = ModeSineMFFT;
+AllStats.ModePeak2PeakIPI = ModePeak2PeakIPI;
+AllStats.ModeEnd2PeakIPI = ModeEnd2PeakIPI;
+AllStats.ModeEnd2StartIPI = ModeEnd2StartIPI;
+AllStats.SkewnessIPI = SkewnessIPI;
+AllStats.MedianLLRfh = MedianLLRfh;
+AllStats.MedianPulseAmplitudes = MedianPulseAmplitudes;
+AllStats.MedianSineAmplitudes = MedianSineAmplitudes;
+AllStats.CorrSineFreqDynamics=CorrSineFreqDynamics;
+AllStats.CorrBoutDuration=CorrBoutDuration;
+AllStats.CorrPulseTrainDuration=CorrPulseTrainDuration;
+AllStats.CorrSineTrainDuration=CorrSineTrainDuration;
+AllStats.CorrSineFreq=CorrSineFreq;
+AllStats.CorrPulseFreq=CorrPulseFreq;
+AllStats.CorrIpi=CorrIpi;
+AllStats.lombStats=lombStats;
+
+AllStats.PulseModels = PulseModels;
+AllStats.SineFFTBouts.time = time;
+AllStats.SineFFTBouts.freq = freq;
+
+AllStats.filename = filename;
+AllStats.timestamp = timestamp;
+
