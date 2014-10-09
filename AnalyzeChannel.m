@@ -69,7 +69,13 @@ end
 
 %calc end to peak IPIS
 %get pulse envelopes
-[PulseStart,PulseCenter,PulseStop] = PulseEnvelope(Data, pulses);
+if numel(pulses.x) > 0
+    [PulseStart,PulseCenter,PulseStop] = PulseEnvelope(Data, pulses);
+else
+    PulseStart = [];
+    PulseCenter = [];
+    PulseStop = [];
+end
 try
     End2Peakipi.d = PulseCenter(2:end) - PulseStop(1:end-1);
     culled_End2Peakipi.d = End2Peakipi.d(End2Peakipi.d > minIPI & End2Peakipi.d < maxIPI);
@@ -147,7 +153,7 @@ end
 try
     PulseModelMFFT = findPulseModelMaxFFT(Pulses.pulse_model2.newfhM,Data.fs);
 catch
-    PulseModelMFFT = [];
+    PulseModelMFFT = NaN;
 end
 
 %get average temp and humidity
