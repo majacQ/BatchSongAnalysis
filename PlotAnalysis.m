@@ -52,9 +52,9 @@ for i  = 1:numControls
                 count = count + 1;
                 AR = load([control_folders{ii} file], '-mat');
                 if count == 1
-                    ControlResults = AR.Analysis_Results;
+                    ControlResults = AR.Stats2Plot;
                 else
-                    ControlResults = [ControlResults AR.Analysis_Results];
+                    ControlResults = [ControlResults AR.Stats2Plot];
                 end
             end
         end
@@ -94,9 +94,9 @@ for i  = 1:numel(genotypes)
                 count = count + 1;
                 AR = load([folders{ii} file], '-mat');
                 if count == 1
-                    Results = AR.Analysis_Results;
+                    Results = AR.Stats2Plot;
                 else
-                    Results = [Results AR.Analysis_Results];
+                    Results = [Results AR.Stats2Plot];
                 end
             end
         end
@@ -138,7 +138,7 @@ for i = 1:numel(genotypes) %for each genotype
             end
             OutliersRemovedResults2Plot = NaN(size(Results2Plot));
             if remove_outliers == 1
-                if sum(isnan(Results2Plot(:,1:end-1))) ~= numel(Results2Plot(:,1:end-1))
+                if ~isnan(Results2Plot(:,1:end-1)) %sum(isnan(Results2Plot(:,1:end-1))) ~= numel(Results2Plot(:,1:end-1)) 
                     [OutliersRemovedResults2Plot(:,1:end-1),controlidx,~] = deleteoutliers(Results2Plot(:,1:end-1),.05,1);
                     controlOutliers = numel(controlidx) - sum(isnan(Results2Plot(:,1:end-1)));
                     if controlOutliers == 0
@@ -148,7 +148,7 @@ for i = 1:numel(genotypes) %for each genotype
                     OutliersRemovedResults2Plot(:,1:end-1) = Results2Plot(:,1:end-1);
                     controlOutliers = [];
                 end
-                if sum(isnan(Results2Plot(:,end))) ~= numel(Results2Plot(:,end))
+                if ~isnan(Results2Plot(:,end)) %sum(isnan(Results2Plot(:,end))) ~= numel(Results2Plot(:,end))
                     [OutliersRemovedResults2Plot(:,end),dataidx,~] = deleteoutliers(Results2Plot(:,end),.05,1);
                     dataOutliers= numel(dataidx) - sum(isnan(Results2Plot(:,end)));
                     if dataOutliers == 0
@@ -189,7 +189,9 @@ for i = 1:numel(genotypes) %for each genotype
             if numel(dataOutliers) > 0
                 text(0.5,-.1,['#Outliers=' num2str(dataOutliers)],'Units','normalized', 'interpreter', 'none')
             end
-            ylim(ha(j),[min(min(OutliersRemovedResults2Plot)) max(max(OutliersRemovedResults2Plot))]);
+            if min(min(OutliersRemovedResults2Plot)) < max(max(OutliersRemovedResults2Plot));
+                ylim(ha(j),[min(min(OutliersRemovedResults2Plot)) max(max(OutliersRemovedResults2Plot))]);
+            end
             
         elseif strcmp(Trait,'Sine2PulseNorm')%plot scatter plots for normalized sine to pulse
             NormS2P2Plot = NaN(maxSampleSize,2*(numControls+1));
@@ -209,7 +211,7 @@ for i = 1:numel(genotypes) %for each genotype
             OutliersRemovedNormS2P2Plot = NaN(size(NormS2P2Plot));
             if remove_outliers == 1
                 for m = 1:size(NormS2P2Plot,2)
-                    if sum(isnan(NormS2P2Plot(:,m))) ~= numel(NormS2P2Plot(:,m))
+                    if ~isnan(NormS2P2Plot(:,m)) %sum(isnan(NormS2P2Plot(:,m))) ~= numel(NormS2P2Plot(:,m))
                         OutliersRemovedNormS2P2Plot(:,m) = deleteoutliers(NormS2P2Plot(:,m),.05,1);
                     else
                         OutliersRemovedNormS2P2Plot(:,m) = NormS2P2Plot(:,m);
@@ -298,7 +300,7 @@ for i = 1:numel(genotypes) %for each genotype
                     alpha(.5)
                 end
             end
-            axis tight
+            %axis tight
 
             %for each genotype
             %choose a new color with each new genotype
@@ -311,7 +313,9 @@ for i = 1:numel(genotypes) %for each genotype
                 plot(results.(geno_varname)(m).ipiDist.xi,results.(geno_varname)(m).ipiDist.f,'Color',densitycolor)
                 alpha(.5)
             end
+            
             xlim([200 700])
+            set(gca,'XTickLabel',{'200','300','400','500','600','700'})
             
         elseif strcmp(Trait,'lombStats')
             %collect control data

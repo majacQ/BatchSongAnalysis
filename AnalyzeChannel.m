@@ -157,11 +157,12 @@ catch
 end
 
 %get average temp and humidity
-if ~isempty(hyg_file)
+if ~isempty(hyg_file) && exist(hyg_file,'file')
     th = load(hyg_file,'-ascii');
     temphyg = mean(th(:,[3 8]));
 else
     temphyg = NaN;
+    fprintf('No hyg file found.\r')
 end
 
 %%%%%%%%%%%%%
