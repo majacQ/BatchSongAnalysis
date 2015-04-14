@@ -14,10 +14,9 @@ function PlotResults(folders,genotypes,control_folders,control_genotypes,remove_
 % genotypes are included in all plots, but statistics are calculated for
 % grand mean of controls.
 % remove_outliers = logical (1/0) to plot with outliers removed or original
-% data
 %
 % USAGE
-% PlotAnalysis({'folder1' 'folder2'},{'one' 'two' 'three'},['folder3' 'folder1'},{'Ore-R' 'Canton-S'})
+% PlotAnalysis({'folder1' 'folder2'},{'one' 'two' 'three'},{'folder3' 'folder1'},{'Ore-R' 'Canton-S'})
 %
 
 %collect control data
@@ -30,6 +29,7 @@ numControls = numel(control_genotypes);
 numGenotypes = numel(genotypes);
 
 controls = struct();
+
 for i  = 1:numControls
     count = 0;
     for ii = 1:numel(control_folders)
@@ -37,13 +37,13 @@ for i  = 1:numControls
             control_folders{ii} = [control_folders{ii} '/'];
         end
         dir_list = dir(control_folders{ii});
-        for g = 1:numControls
-            idx = ~cellfun('isempty',strfind({dir_list.name},control_genotypes{g}));
-            if sum(idx) < 1
-                fprintf('Control genotype not found. Check details.\n')
-                return
-            end
-        end
+%        for g = 1:numControls %check on whether controls can be found
+%            idx = ~cellfun('isempty',strfind({dir_list.name},control_genotypes{g}));
+%            if g==1 && sum(idx) < 1
+%                fprintf('Control genotype not found. Check details.\n')
+%                return
+%            end
+ %       end
         
         for iii = 1:numel(dir_list)
             file = dir_list(iii).name;
@@ -63,7 +63,7 @@ for i  = 1:numControls
     controls.(varname) = ControlResults;
 end
 
-SampleSize = zeros(1,numControls+1);
+    SampleSize = zeros(1,numControls+1);
 for x = 1:numControls
     varname = genvarname(control_genotypes{x});
     SampleSize(x) = numel(controls.(varname));
@@ -107,14 +107,23 @@ end
 
 densitycolors = {'blue','red','green','magenta','cyan'};
 
+geno_varname = genvarname(genotypes{i});
+numSamples = numel(results.(geno_varname));
+SampleSize(end) = numSamples;
+maxSampleSize = max(SampleSize);
+names = fieldnames(results.(geno_varname));
+
+    
 
 %make arrays for plotting
 for i = 1:numel(genotypes) %for each genotype
-    geno_varname = genvarname(genotypes{i});
-    numSamples = numel(results.(geno_varname));
-    SampleSize(end) = numSamples;
-    maxSampleSize = max(SampleSize);
-    names = fieldnames(results.(geno_varname));
+    
+        geno_varname = genvarname(genotypes{i});
+        numSamples = numel(results.(geno_varname));
+        SampleSize(end) = numSamples;
+        maxSampleSize = max(SampleSize);
+        names = fieldnames(results.(geno_varname));
+
     clf;
     ha = tight_subplot(8,4,.05,.06,[.05 .03]);
     for j = 1:27 %all results except models
@@ -138,9 +147,9 @@ for i = 1:numel(genotypes) %for each genotype
             end
             OutliersRemovedResults2Plot = NaN(size(Results2Plot));
             if remove_outliers == 1
-                if ~isnan(Results2Plot(:,1:end-1)) %sum(isnan(Results2Plot(:,1:end-1))) ~= numel(Results2Plot(:,1:end-1)) 
+                if sum(~isnan(Results2Plot(:,1:end-1)))>0 %sum(isnan(Results2Plot(:,1:end-1))) ~= numel(Results2Plot(:,1:end-1)) 
                     [OutliersRemovedResults2Plot(:,1:end-1),controlidx,~] = deleteoutliers(Results2Plot(:,1:end-1),.05,1);
-                    controlOutliers = numel(controlidx) - sum(isnan(Results2Plot(:,1:end-1)));
+                    controlOutliers = numel(controlidx) - sum(sum(isnan(Results2Plot(:,1:end-1))));
                     if controlOutliers == 0
                         controlOutliers = [];
                     end
@@ -148,7 +157,7 @@ for i = 1:numel(genotypes) %for each genotype
                     OutliersRemovedResults2Plot(:,1:end-1) = Results2Plot(:,1:end-1);
                     controlOutliers = [];
                 end
-                if ~isnan(Results2Plot(:,end)) %sum(isnan(Results2Plot(:,end))) ~= numel(Results2Plot(:,end))
+                if sum(~isnan(Results2Plot(:,end)))>0 %sum(isnan(Results2Plot(:,end))) ~= numel(Results2Plot(:,end))
                     [OutliersRemovedResults2Plot(:,end),dataidx,~] = deleteoutliers(Results2Plot(:,end),.05,1);
                     dataOutliers= numel(dataidx) - sum(isnan(Results2Plot(:,end)));
                     if dataOutliers == 0
@@ -171,7 +180,7 @@ for i = 1:numel(genotypes) %for each genotype
                 %change color of results
                 color = 'r';
             else
-                color = 'k';
+                color = 'b';
             end
             colors = cell(numControls + 1,1);
             colors(1:end-1) = {'k'};
@@ -211,7 +220,7 @@ for i = 1:numel(genotypes) %for each genotype
             OutliersRemovedNormS2P2Plot = NaN(size(NormS2P2Plot));
             if remove_outliers == 1
                 for m = 1:size(NormS2P2Plot,2)
-                    if ~isnan(NormS2P2Plot(:,m)) %sum(isnan(NormS2P2Plot(:,m))) ~= numel(NormS2P2Plot(:,m))
+                    if sum(~isnan(NormS2P2Plot(:,m)))>0 %sum(isnan(NormS2P2Plot(:,m))) ~= numel(NormS2P2Plot(:,m))
                         OutliersRemovedNormS2P2Plot(:,m) = deleteoutliers(NormS2P2Plot(:,m),.05,1);
                     else
                         OutliersRemovedNormS2P2Plot(:,m) = NormS2P2Plot(:,m);
@@ -229,10 +238,11 @@ for i = 1:numel(genotypes) %for each genotype
             %make arrays for aoctool
             x = reshape(OutliersRemovedNormS2P2Plot(:,1:2:end-1),[],1);
             y = reshape(OutliersRemovedNormS2P2Plot(:,2:2:end),[],1);
+            %this code may remove some samples, so need to calculate
             x = x(isfinite(x));	%new code to keep only non-infinite data
             y = y(isfinite(y));
-            group = ones(size(x,1),1);
-            group(1:numControls*maxSampleSize) = 0;
+            group = zeros(size(x,1),1);
+            group(end-numSamples:end) = 1;
             [~,T,h] = aoctool(x,y,group,[],[],[],[],'off');
             
             [GroupRow,~] = find(strcmp(T,'group') == 1);
@@ -244,7 +254,7 @@ for i = 1:numel(genotypes) %for each genotype
                 %change color of results
                 color = 'r';
             else
-                color = 'k';
+                color = 'b';
             end
             
             %plot in new panel
@@ -315,7 +325,7 @@ for i = 1:numel(genotypes) %for each genotype
             end
             
             xlim([200 700])
-            set(gca,'XTickLabel',{'200','300','400','500','600','700'})
+            set(gca,'XTickLabel',{'20','30','40','50','60','70'})
             
         elseif strcmp(Trait,'lombStats')
             %collect control data
@@ -339,8 +349,8 @@ for i = 1:numel(genotypes) %for each genotype
             count = 0;
             for n = 1:numSamples
                 count = count+1;
-                lombStats2PlotResultsF{j} = results.(geno_varname)(n).(Trait).F;
-                lombStats2PlotResultsAlpha{j} = results.(geno_varname)(n).(Trait).Alpha;
+                lombStats2PlotResultsF{count} = results.(geno_varname)(n).(Trait).F;
+                lombStats2PlotResultsAlpha{count} = results.(geno_varname)(n).(Trait).Alpha;
             end
             lombStats2PlotResultsF = cell2mat(lombStats2PlotResultsF');
             lombStats2PlotResultsAlpha = cell2mat(lombStats2PlotResultsAlpha');
@@ -417,11 +427,11 @@ end
 text(0,.7,['Analysis Folders = ' resFolders], 'interpreter', 'none')
 
 %collect controls
-conGenos = [];
-for a= 1:numControls
-    conGenos = [conGenos char(control_genotypes{a})];
-end
-text(0,.4,['Controls = ' conGenos], 'interpreter', 'none')
+% conGenos = [];
+% for a= 1:numControls
+%     conGenos = [conGenos char(control_genotypes{a})];
+% end
+text(0,.4,['Controls = ' control_genotypes], 'interpreter', 'none')
 
 %collect control folders
 conFolders = [];
