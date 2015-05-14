@@ -14,7 +14,7 @@ function BatchFlySongAnalysis(daq_file,hyg_file,genotypes,recording_channels,con
 % hyg_file: full path and name of .hyg file that was produced at same time
 % as .wav file. This will have a slightly different name from daq_file
 % because the hyg_file time stamp is slightly earlier than the daq_file
-% time stamp.
+% time stamp. If using .daq file, use [] for this parameter.
 %
 % genotypes: cell array of genotype names (e.g. {'strain1' 'wild_type'})
 %
@@ -44,8 +44,9 @@ end
 %check if _out file exists
 [path2daq,daq_root,~] = fileparts(daq_file);
 folder = [path2daq '/' daq_root '_out/'];
-% [path2hyg,hyg_root,~] = fileparts(hyg_file);
-% hyg_file = [path2hyg '/' hyg_root '.hyg'];
+if isempty(hyg_file)
+    hyg_file = [path2daq '/' daq_root '.hyg'];
+end
 if ~isdir(folder)
     error('myApp:argChk','Analysis stopped.\nFolder with segmented song does not exist.');
 end
