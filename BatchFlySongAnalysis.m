@@ -1,13 +1,20 @@
 %Batch Fly Song Analysis
 
-function BatchFlySongAnalysis(daq_file,genotypes,recording_channels,control_genotypes,LLR_threshold)
+function BatchFlySongAnalysis(daq_file,hyg_file,genotypes,recording_channels,control_genotypes,LLR_threshold)
 
 % USAGE
 %
 %
 % daq_file: full path and name of daq file (time stamp) that was previously 
 % segmented with FlySongSegmenterDAQ (e.g. "20110510132426.daq"). If no path 
-% defined, then file assumed to reside in current folder
+% defined, then file assumed to reside in current folder. Never versions of
+% ArrayTake produce .wav files as output, rather than .daq files. No
+% problem, just used the name of the .wav file.
+%
+% hyg_file: full path and name of .hyg file that was produced at same time
+% as .wav file. This will have a slightly different name from daq_file
+% because the hyg_file time stamp is slightly earlier than the daq_file
+% time stamp.
 %
 % genotypes: cell array of genotype names (e.g. {'strain1' 'wild_type'})
 %
@@ -37,7 +44,8 @@ end
 %check if _out file exists
 [path2daq,daq_root,~] = fileparts(daq_file);
 folder = [path2daq '/' daq_root '_out/'];
-hyg_file = [path2daq '/' daq_root '.hyg'];
+% [path2hyg,hyg_root,~] = fileparts(hyg_file);
+% hyg_file = [path2hyg '/' hyg_root '.hyg'];
 if ~isdir(folder)
     error('myApp:argChk','Analysis stopped.\nFolder with segmented song does not exist.');
 end
