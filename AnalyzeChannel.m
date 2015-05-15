@@ -1,4 +1,4 @@
-function [Stats2Plot, AllStats] = AnalyzeChannel(filename,LLR_threshold,hyg_file)
+function [Stats2Plot, AllStats] = AnalyzeChannel(filename,LLR_threshold,hyg_file,hyg_file_type)
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -158,13 +158,19 @@ end
 
 %get average temp and humidity
 if ~isempty(hyg_file) && exist(hyg_file,'file')
-    th = load(hyg_file,'-ascii');
-    temphyg = mean(th(:,[3 8]));
+    if strcmp(hyg_file_type,'old')
+        th = load(hyg_file,'-ascii');
+        temphyg = mean(th(:,[3 8]));
+    else %read file line by line and place temp and RH in correct locations
+        fid = fopen(hyg_file,'r');
+        C = textscan(fid,'%*s %*s %f %*[^\n]');
+        temphyg(1) = mean(C{1}(1:2:end));
+        temphyg(2) = mean(C{1}(2:2:end));
+    end
 else
     temphyg = NaN;
     fprintf('No hyg file found.\r')
 end
-
 %%%%%%%%%%%%%
 %%%%%%%%%%%%%
 %% 

@@ -1,5 +1,3 @@
-%Batch Fly Song Analysis
-
 function BatchFlySongAnalysis(daq_file,hyg_file,genotypes,recording_channels,control_genotypes,LLR_threshold)
 
 % USAGE
@@ -44,8 +42,11 @@ end
 %check if _out file exists
 [path2daq,daq_root,~] = fileparts(daq_file);
 folder = [path2daq '/' daq_root '_out/'];
-if isempty(hyg_file)
+if isempty(hyg_file) %if hyg file was collected with daq file on old system
     hyg_file = [path2daq '/' daq_root '.hyg'];
+    hyg_file_type = 'old';
+else
+    hyg_file_type = 'new';
 end
 if ~isdir(folder)
     error('myApp:argChk','Analysis stopped.\nFolder with segmented song does not exist.');
@@ -83,7 +84,7 @@ if ~isempty(recording_channels)
             fprintf(['Analyzing file ' root '\n'])
             
             if exist(path_file, 'file') == 2
-                [Stats2Plot, AllStats] = AnalyzeChannel(path_file,LLR_threshold,hyg_file);
+                [Stats2Plot, AllStats] = AnalyzeChannel(path_file,LLR_threshold,hyg_file,hyg_file_type);
 %                 Analysis_Results(y).Stats2Plot = Stats2Plot;
 %                 Analysis_Results(y).AllStats = AllStats;
                 if sum(ismember(control_genotypes,genotype)) == 0
