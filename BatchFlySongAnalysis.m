@@ -26,6 +26,16 @@ function BatchFlySongAnalysis(daq_file,hyg_file,genotypes,recording_channels,con
 %
 % LLR_threshold = can be set by user. Usually want to run twice, once at 50
 % and once at 0
+%
+% e.g.
+%
+% new ArrayTake
+% BatchFlySongAnalysis('/Users/sternd/Desktop/wavTest/20141117T151246a.wav','/Users/sternd/Desktop/wavTest/20141117T151224.hyg',{'2115'},{[1 2]},{'2115'},0)
+%
+% old ArrayTake
+% BatchFlySongAnalysis('/Users/sternd/Desktop/wavTest/20141117T151246a.daq',[],{'2115'},{[1 2]},{'2115'},0)
+%
+%
 
 if nargin < 5
     LLR_threshold = 0;
