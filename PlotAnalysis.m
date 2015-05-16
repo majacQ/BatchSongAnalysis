@@ -260,10 +260,14 @@ for j = 1:27 %all results except models
         %make arrays for aoctool
         x = reshape(OutliersRemovedNormS2P2Plot(:,1:2:end-1),[],1);
         y = reshape(OutliersRemovedNormS2P2Plot(:,2:2:end),[],1);
+        num = size(OutliersRemovedNormS2P2Plot,1);
+        group=zeros(numel(x),1);
+        group(num+1:end)=1;
+        group = group(isfinite(x));
         x = x(isfinite(x));	%new code to keep only non-infinite data
         y = y(isfinite(y));
-        group = zeros(size(x,1),1);
-        group(end-numSamples:end) = 1;
+        %group = zeros(size(x,1),1);
+        %group(end-numSamples:end) = 1;
         [~,T,h] = aoctool(x,y,group,[],[],[],[],'off');
         
         [GroupRow,~] = find(strcmp(T,'group') == 1);
