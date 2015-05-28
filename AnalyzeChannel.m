@@ -69,20 +69,24 @@ end
 
 %calc end to peak IPIS
 %get pulse envelopes
-if numel(pulses.x) > 0
-    [PulseStart,PulseCenter,PulseStop] = PulseEnvelope(Data, pulses);
+if license('test', 'Curve_Fitting_Toolbox')
+    if numel(pulses.x) > 0
+        [PulseStart,PulseCenter,PulseStop] = PulseEnvelope(Data, pulses);
+    else
+        PulseStart = [];
+        PulseCenter = [];
+        PulseStop = [];
+    end
 else
-    PulseStart = [];
-    PulseCenter = [];
-    PulseStop = [];
+    fprintf('Warning: You do not have the Curve Fitting Toolbox. Therefore, we will not try to estimate the IPI from pulse starts and stops.\r')
 end
 try
     End2Peakipi.d = PulseCenter(2:end) - PulseStop(1:end-1);
     culled_End2Peakipi.d = End2Peakipi.d(End2Peakipi.d > minIPI & End2Peakipi.d < maxIPI);
-%     culled_End2Peakipi.t = End2Peakipi.t(End2Peakipi.d > minIPI & End2Peakipi.d < maxIPI);
+    %     culled_End2Peakipi.t = End2Peakipi.t(End2Peakipi.d > minIPI & End2Peakipi.d < maxIPI);
 catch
     culled_End2Peakipi.d = [];
-%     culled_End2Peakipi.t = [];
+    %     culled_End2Peakipi.t = [];
 end
 
 
@@ -92,11 +96,12 @@ try
     
     
     culled_End2Startipi.d = End2Startipi.d(End2Startipi.d > 0 & End2Startipi.d < maxIPI);
-%     culled_End2Startipi.t = End2Startipi.t(End2Startipi.d > minIPI & End2Startipi.d < maxIPI);
+    %     culled_End2Startipi.t = End2Startipi.t(End2Startipi.d > minIPI & End2Startipi.d < maxIPI);
 catch
     culled_End2Startipi.d = [];
-%     culled_End2Startipi.t = [];
+    %     culled_End2Startipi.t = [];
 end
+
 
 %calc IPI histogram
 
