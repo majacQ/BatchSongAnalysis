@@ -81,7 +81,11 @@ if ~isempty(recording_channels)
     %make full list of all recording channels and genotypes
     for i = 1:num_genotypes
         start = recording_channels{i}(1);
-        finish = recording_channels{i}(2);
+        if numel(recording_channels{i}) >1
+            finish = recording_channels{i}(2);
+        else
+            finish = start;
+        end
         genotype = cellstr(genotypes{i});
         
         %send each analysis job to separate cluster processor
