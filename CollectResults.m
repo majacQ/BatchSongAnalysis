@@ -1,4 +1,4 @@
-function [ControlResults,Results] = CollectResults(folders,genotypes,control_folders,control_genotypes)
+function [controls,results] = CollectResults(folders,genotypes,control_folders,control_genotypes)
 
 % folders = Cell array of folders containing genotypes to plot
 % genotypes = Cell array of genotypes to plot
@@ -43,9 +43,9 @@ for i  = 1:numControls
                 count = count + 1;
                 AR = load([control_folders{ii} file], '-mat');
                 if count == 1
-                    ControlResults = AR.Analysis_Results;
+                    ControlResults = AR.AllStats;
                 else
-                    ControlResults = [ControlResults AR.Analysis_Results];
+                    ControlResults = [ControlResults AR.AllStats];
                 end
             end
         end
@@ -85,9 +85,9 @@ for i  = 1:numel(genotypes)
                 count = count + 1;
                 AR = load([folders{ii} file], '-mat');
                 if count == 1
-                    Results = AR.Analysis_Results;
+                    Results = AR.AllStats;
                 else
-                    Results = [Results AR.Analysis_Results];
+                    Results = [Results AR.AllStats];
                 end
             end
         end
