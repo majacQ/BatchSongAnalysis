@@ -269,7 +269,7 @@ for j = 1:27 %all results except models
         %group = zeros(size(x,1),1);
         %group(end-numSamples:end) = 1;
         
-        idx = intersect(find(~isnan(x)),find(~isnan(y))); %find rows with data in both x & y
+        idx = intersect(find(~isnan(x) & ~isinf(x)),find(~isnan(y) & ~isinf(y)));  %find rows with data in both x & y
         x = x(idx);
         y = y(idx);
         group = group(idx);
