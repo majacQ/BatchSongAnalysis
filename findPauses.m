@@ -38,6 +38,8 @@ pulseBoutStop(:,2) = 4;
 
 AllEvents = [sineBoutStart;sineBoutStop;pulseBoutStart;pulseBoutStop];%pool them all together
 AllEventsSorted = sortrows(AllEvents,1);%sort by time
+%remove rows containing no sine or pulse data
+AllEventsSorted((AllEventsSorted(:,1)==0),:) = [];
 
 %make arrays to hold event info
 numDiffEvents = size(sineStart,1) + size(pulseBoutStart,1) - 1;
