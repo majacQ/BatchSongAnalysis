@@ -263,59 +263,65 @@ for j = 1:27 %all results except models
         num = size(OutliersRemovedNormS2P2Plot,1);
         group=zeros(numel(x),1);
         group(num+1:end)=1;
-        group = group(isfinite(x));
-        x = x(isfinite(x));	%new code to keep only non-infinite data
-        y = y(isfinite(y));
+        %group = group(isfinite(x));
+        %x = x(isfinite(x));	%new code to keep only non-infinite data
+        %y = y(isfinite(y));
         %group = zeros(size(x,1),1);
         %group(end-numSamples:end) = 1;
-        [~,T,h] = aoctool(x,y,group,[],[],[],[],'off');
         
-        [GroupRow,~] = find(strcmp(T,'group') == 1);
-        [GroupXRow,~] = find(strcmp(T,'group*x') == 1);
-        [~,Probcol] = find(strcmp(T,'Prob>F') == 1);
-        
-        
-        if T{GroupRow,Probcol} < 0.01 || T{GroupXRow,Probcol} < 0.01
-            %change color of results
-            color = 'r';
-        else
-            color = 'b';
-        end
-        
-        %plot in new panel
-        axes(ha(j))
-        title(Trait)
-        hold on
-        for k = 1:numControls
-            p = k + (k-1);
-            x = OutliersRemovedNormS2P2Plot(:,p);
-            y = OutliersRemovedNormS2P2Plot(:,p+1);
-            scatter(x,y,'k')
-            try
-                brob = robustfit(x,y);
-                plot(x,brob(1)+brob(2)*x,'k')
-            catch
+        idx = intersect(find(~isnan(x)),find(~isnan(y))); %find rows with data in both x & y
+        x = x(idx);
+        y = y(idx);
+        group = group(idx);
+        if length(unique(group))>1
+            [~,T,h] = aoctool(x,y,group,[],[],[],[],'off');
+            
+            [GroupRow,~] = find(strcmp(T,'group') == 1);
+            [GroupXRow,~] = find(strcmp(T,'group*x') == 1);
+            [~,Probcol] = find(strcmp(T,'Prob>F') == 1);
+            
+            
+            if T{GroupRow,Probcol} < 0.01 || T{GroupXRow,Probcol} < 0.01
+                %change color of results
+                color = 'r';
+            else
+                color = 'b';
             end
-        end
-        for m = 1:numGenotypes
-            p = k + m + (k+m-1);
-            x = OutliersRemovedNormS2P2Plot(:,p);
-            y = OutliersRemovedNormS2P2Plot(:,p+1);
-            scatter(x,y,color)
-            try
-                brob = robustfit(x,y);
-                plot(x,brob(1)+brob(2)*x,'k')
-            catch
+            
+            %plot in new panel
+            axes(ha(j))
+            title(Trait)
+            hold on
+            for k = 1:numControls
+                p = k + (k-1);
+                x = OutliersRemovedNormS2P2Plot(:,p);
+                y = OutliersRemovedNormS2P2Plot(:,p+1);
+                scatter(x,y,'k')
+                try
+                    brob = robustfit(x,y);
+                    plot(x,brob(1)+brob(2)*x,'k')
+                catch
+                end
             end
+            for m = 1:numGenotypes
+                p = k + m + (k+m-1);
+                x = OutliersRemovedNormS2P2Plot(:,p);
+                y = OutliersRemovedNormS2P2Plot(:,p+1);
+                scatter(x,y,color)
+                try
+                    brob = robustfit(x,y);
+                    plot(x,brob(1)+brob(2)*x,'k')
+                catch
+                end
+            end
+            hold off
+            set(gca,'YTickLabelMode','auto')
+            set(gca,'XTickLabelMode','auto')
+            ylim(ha(j),[min(min(OutliersRemovedNormS2P2Plot)) max(max(OutliersRemovedNormS2P2Plot))]);
+            color = 'k';
+            controlidx= [];
+            dataidx = [];
         end
-        hold off
-        set(gca,'YTickLabelMode','auto')
-        set(gca,'XTickLabelMode','auto')
-        ylim(ha(j),[min(min(OutliersRemovedNormS2P2Plot)) max(max(OutliersRemovedNormS2P2Plot))]);
-        color = 'k';
-        controlidx= [];
-        dataidx = [];
-        
         
         
     elseif strcmp(Trait,'ipiDist')%plot kernel density estimates for IPIs
