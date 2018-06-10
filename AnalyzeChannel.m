@@ -26,8 +26,8 @@ end
 minIPI = 100;
 maxIPI = 3000;
 try
-    pulses.w0 = Pulses.IPICull.w0(Pulses.Lik_pulse2.LLR_fh > LLR_threshold );
-    pulses.w1 = Pulses.IPICull.w1(Pulses.Lik_pulse2.LLR_fh > LLR_threshold );
+    pulses.w0 = Pulses.IPICull.w0(Pulses.Lik_pulse2.LLR_best > LLR_threshold );
+    pulses.w1 = Pulses.IPICull.w1(Pulses.Lik_pulse2.LLR_best > LLR_threshold );
     pulses.wc = pulses.w1 - ((pulses.w1 - pulses.w0)./2);
     pulses.x = GetClips(pulses.w0,pulses.w1,Data.d);
 catch
@@ -292,7 +292,7 @@ end
 %ratio sine to pulse - DONE
 
 if PulseTotal > 0
-    Sine2Pulse = SineTotal ./ PulseTotal;
+    Sine2Pulse = log10((SineTotal ./ PulseTotal) + 1);
     Sine2PulseNorm = [log10(sqrt(SineTotal.* PulseTotal)./(recording_duration-SineTotal-PulseTotal)) log10(Sine2Pulse)];
 else
     Sine2Pulse = NaN;
@@ -382,16 +382,26 @@ SkewnessIPI = skewness(culled_ipi.d,0);
 %DONE
 
 try
-    if numel(Pulses.Lik_pulse2.LLR_fh) > numEventCutoff
-    LLRfh = Pulses.Lik_pulse2.LLR_fh(Pulses.Lik_pulse2.LLR_fh > 0);
-    MedianLLRfh = median(LLRfh);
+    if numel(Pulses.Lik_pulse2.LLR_best) > numEventCutoff
+        LLRbest = Pulses.Lik_pulse2.LLR_best(Pulses.Lik_pulse2.LLR_best > 0);
+        MedianLLRbest = median(LLRbest);
     else
-        MedianLLRfh  = NaN;
+        MedianLLRbest  = NaN;
     end
         
 catch
-    MedianLLRfh = NaN;
+    MedianLLRbest = NaN;
 end
+
+%ratio of slow to fast pulses
+Number_slow_pulses = sum(Pulses.Lik_pulse.LLR_fh(Pulses.Lik_pulse.LLR_best >0) > Pulses.Lik_pulse.LLR_sh(Pulses.Lik_pulse.LLR_best >0));
+Number_fast_pulses = sum(Pulses.Lik_pulse.LLR_fh(Pulses.Lik_pulse.LLR_best >0) < Pulses.Lik_pulse.LLR_sh(Pulses.Lik_pulse.LLR_best >0));
+if PulseTotal > 0
+    Slow_to_fast_pulses = log10((Number_slow_pulses ./ Number_fast_pulses) + 1);
+else
+    Slow_to_fast_pulses = NaN;
+end
+
 
 %mode of amplitude of pulses - DONE
 
@@ -531,12 +541,13 @@ Stats2Plot.MedianPulseTrainLength = MedianPulseTrainLength;
 
 Stats2Plot.MedianSineTrainLength = MedianSineTrainLength;
 Stats2Plot.Sine2Pulse = Sine2Pulse;
-Stats2Plot.Sine2PulseNorm = Sine2PulseNorm;
+Stats2Plot.Slow2FastPulses = Slow_to_fast_pulses;
+%Stats2Plot.Sine2PulseNorm = Sine2PulseNorm;
 %Stats2Plot.ModePulseMFFT = ModePulseMFFT;
 Stats2Plot.PulseModelMFFT = PulseModelMFFT;
 Stats2Plot.ModeSineMFFT = ModeSineMFFT;
 
-Stats2Plot.MedianLLRfh = MedianLLRfh;
+Stats2Plot.MedianLLRbest = MedianLLRbest;
 Stats2Plot.ModePeak2PeakIPI = ModePeak2PeakIPI;
 Stats2Plot.ModeEnd2PeakIPI = ModeEnd2PeakIPI;
 Stats2Plot.ModeEnd2StartIPI = ModeEnd2StartIPI;
@@ -582,6 +593,7 @@ AllStats.MedianPulseTrainLength = MedianPulseTrainLength;
 AllStats.MedianSineTrainLength = MedianSineTrainLength;
 AllStats.Sine2Pulse = Sine2Pulse;
 AllStats.Sine2PulseNorm = Sine2PulseNorm;
+AllStats.Slow2FastPulses = Slow_to_fast_pulses;
 AllStats.ModePulseMFFT = ModePulseMFFT;
 AllStats.PulseModelMFFT = PulseModelMFFT;
 AllStats.ModeSineMFFT = ModeSineMFFT;
@@ -591,7 +603,7 @@ AllStats.ModeEnd2StartIPI = ModeEnd2StartIPI;
 AllStats.ipiDist = ipiDist;
 AllStats.residIPI = residIPI;
 AllStats.SkewnessIPI = SkewnessIPI;
-AllStats.MedianLLRfh = MedianLLRfh;
+AllStats.MedianLLRbest = MedianLLRbest;
 AllStats.MedianPulseAmplitudes = MedianPulseAmplitudes;
 AllStats.MedianSineAmplitudes = MedianSineAmplitudes;
 AllStats.CorrSineFreqDynamics=CorrSineFreqDynamics;
